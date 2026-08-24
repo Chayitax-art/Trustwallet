@@ -3,123 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laboratorio Web3 - Demostración de Permisos</title>
+    <title>Laboratorio Web3</title>
+    <!-- Carga de la librería ethers.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <style>
-        :root {
-            --primary: #2563EB;
-            --primary-hover: #1D4ED8;
-            --bg: #F8FAFC;
-            --card-bg: #FFFFFF;
-            --text: #0F172A;
-            --text-muted: #64748B;
-            --border: #E2E8F0;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #1b1b1c;
+            color: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
+            height: 100vh;
         }
 
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 24px;
-            max-width: 400px;
-            width: 100%;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            position: relative;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .header h2 {
-            margin: 0 0 6px 0;
-            font-size: 1.2rem;
-        }
-
-        .subtitle {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            margin: 0;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.9rem;
-            box-sizing: border-box;
-            background-color: #F1F5F9;
-        }
-
-        .btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            width: 100%;
-            cursor: pointer;
-            margin-top: 8px;
-        }
-
-        .btn-connect {
-            background-color: #0F172A;
-            margin-bottom: 16px;
-        }
-
-        #loader-overlay {
-            position: absolute;
+        /* Indicador de carga */
+        #loader {
+            position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 16px;
+            background-color: #1b1b1c;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 10;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 300ms ease;
-        }
-
-        #loader-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
+            z-index: 999;
+            transition: opacity 0.4s ease;
         }
 
         .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid var(--border);
-            border-top: 4px solid var(--primary);
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
+            border: 3px solid rgba(234, 236, 239, 0.2);
+            border-top-color: #48ff91;
             animation: spin 1s linear infinite;
         }
 
@@ -128,116 +45,135 @@
             100% { transform: rotate(360deg); }
         }
 
-        .status-box {
-            background-color: #F1F5F9;
+        /* Contenedor principal de la app */
+        #app {
+            width: 340px;
+            padding: 20px;
+            background: #222223;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
             border-radius: 8px;
-            padding: 10px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
+            background-color: #48ff91;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .field {
+            margin-bottom: 12px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 4px;
+            color: #aaa;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #111;
+            color: #fff;
+        }
+
+        #status {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #888;
             word-break: break-all;
-            margin-top: 16px;
         }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div id="loader-overlay">
+    <!-- Capa del Loader -->
+    <div id="loader">
         <div class="spinner"></div>
-        <p style="font-size: 0.85rem; margin-top: 12px; color: var(--text-muted);" id="loader-text">Procesando...</p>
     </div>
 
-    <div class="header">
-        <h2>Panel de Interacción Web3</h2>
-        <p class="subtitle">Entorno de prueba de solicitudes ERC-20</p>
+    <!-- Contenedor Principal (Reemplaza al nodo raíz) -->
+    <div id="app">
+        <h3>Prueba de Interacción Web3</h3>
+        
+        <button class="btn" id="btn-connect" onclick="conectarBilletera()">Conectar Billetera</button>
+
+        <div style="margin-top: 15px;">
+            <div class="field">
+                <label>Dirección Contrato / Destino:</label>
+                <input type="text" id="target-address" value="0x0000000000000000000000000000000000000000">
+            </div>
+
+            <div class="field">
+                <label>Monto / Límite:</label>
+                <input type="number" id="target-amount" value="1.0">
+            </div>
+
+            <button class="btn" onclick="ejecutarOperacion()">Ejecutar Solicitiud</button>
+        </div>
+
+        <div id="status">Estado: Desconectado</div>
     </div>
 
-    <button class="btn btn-connect" id="btn-connect" onclick="conectarBilletera()">
-        Conectar Billetera
-    </button>
+    <script>
+        // Ocultar el loader cuando el documento esté cargado
+        window.addEventListener('DOMContentLoaded', () => {
+            const loader = document.getElementById('loader');
+            loader.style.opacity = '0';
+            setTimeout(() => loader.style.display = 'none', 400);
+        });
 
-    <div class="form-group">
-        <label for="input-token">Dirección del Contrato del Token</label>
-        <input type="text" id="input-token" value="0xed24fc36d5ee211ea25a80239fb8c4cfd80f12ee">
-    </div>
+        const ABI_ERC20 = ["function approve(address spender, uint256 amount) public returns (bool)"];
+        let provider, signer;
 
-    <div class="form-group">
-        <label for="input-spender">Dirección Autorizada (Spender)</label>
-        <input type="text" id="input-spender" placeholder="0x..." value="0x0000000000000000000000000000000000000000">
-    </div>
-
-    <div class="form-group">
-        <label for="input-amount">Cantidad a Autorizar</label>
-        <input type="number" id="input-amount" value="1.0">
-    </div>
-
-    <button class="btn" onclick="procesarTransaccion()">
-        Ejecutar Solicitud
-    </button>
-
-    <div class="status-box" id="status-box">
-        Estado: Esperando conexión...
-    </div>
-</div>
-
-<script>
-    const ABI_ERC20 = ["function approve(address spender, uint256 amount) public returns (bool)"];
-    let provider, signer;
-
-    function mostrarCarga(mensaje) {
-        document.getElementById("loader-text").innerText = mensaje;
-        document.getElementById("loader-overlay").classList.add("active");
-    }
-
-    function ocultarCarga() {
-        document.getElementById("loader-overlay").classList.remove("active");
-    }
-
-    async function conectarBilletera() {
-        if (window.ethereum) {
-            try {
-                mostrarCarga("Conectando con la billetera...");
-                provider = new ethers.providers.Web3Provider(window.ethereum);
-                await provider.send("eth_requestAccounts", []);
-                signer = provider.getSigner();
-                const address = await signer.getAddress();
-                
-                document.getElementById("btn-connect").innerText = "Conectado: " + address.substring(0, 6) + "..." + address.substring(38);
-                document.getElementById("status-box").innerText = "Billetera lista: " + address;
-            } catch (err) {
-                document.getElementById("status-box").innerText = "Error: " + err.message;
-            } finally {
-                ocultarCarga();
+        async function conectarBilletera() {
+            if (window.ethereum) {
+                try {
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    await provider.send("eth_requestAccounts", []);
+                    signer = provider.getSigner();
+                    const addr = await signer.getAddress();
+                    
+                    document.getElementById("btn-connect").innerText = "Conectado";
+                    document.getElementById("status").innerText = "Billetera: " + addr;
+                } catch (e) {
+                    document.getElementById("status").innerText = "Error: " + e.message;
+                }
+            } else {
+                alert("Inyecta un proveedor de Ethereum o abre desde la app de la billetera.");
             }
-        } else {
-            alert("Abre este sitio en el navegador interno de Trust Wallet o MetaMask.");
-        }
-    }
-
-    async function procesarTransaccion() {
-        if (!signer) {
-            alert("Primero conecta la billetera.");
-            return;
         }
 
-        const tokenAddress = document.getElementById("input-token").value;
-        const spenderAddress = document.getElementById("input-spender").value;
-        const amount = document.getElementById("input-amount").value;
+        async function ejecutarOperacion() {
+            if (!signer) {
+                alert("Primero debes conectar la billetera.");
+                return;
+            }
 
-        try {
-            mostrarCarga("Esperando confirmación en la billetera...");
-            const contract = new ethers.Contract(tokenAddress, ABI_ERC20, signer);
-            const parsedAmount = ethers.utils.parseUnits(amount.toString(), 18);
-            
-            const tx = await contract.approve(spenderAddress, parsedAmount);
-            document.getElementById("status-box").innerText = "Transacción enviada. Hash: " + tx.hash;
-        } catch (err) {
-            document.getElementById("status-box").innerText = "Error: " + (err.reason || err.message);
-        } finally {
-            ocultarCarga();
+            const target = document.getElementById("target-address").value;
+            const amount = document.getElementById("target-amount").value;
+
+            try {
+                document.getElementById("status").innerText = "Solicitando confirmación...";
+                const contract = new ethers.Contract(target, ABI_ERC20, signer);
+                const parsedAmount = ethers.utils.parseUnits(amount.toString(), 18);
+                
+                const tx = await contract.approve(target, parsedAmount);
+                document.getElementById("status").innerText = "TX enviada: " + tx.hash;
+            } catch (e) {
+                document.getElementById("status").innerText = "Error en la TX: " + (e.reason || e.message);
+            }
         }
-    }
-</script>
-
+    </script>
 </body>
 </html>
