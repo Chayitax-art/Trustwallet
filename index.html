@@ -1,67 +1,239 @@
 <!DOCTYPE html>
-<!-- translate="no": the wallet UI must never be auto-translated. Chrome/Opera page translation
-     moves DOM text nodes, and React's commit phase then throws NotFoundError on removeChild
-     (EXTENSION-WALLET-4GT) — besides translating amounts/addresses being unsafe on its own. -->
-<html translate="no" style="width: 375px; height: 572px">
-  <head>
+<html lang="es">
+<head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Trust Wallet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorio Web3 - Demostración de Permisos</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <style>
-      @keyframes tw-initial-spin {
-        0% {
-          transform: rotate(0deg);
+        :root {
+            --primary: #2563EB;
+            --primary-hover: #1D4ED8;
+            --bg: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --text: #0F172A;
+            --text-muted: #64748B;
+            --border: #E2E8F0;
         }
-        100% {
-          transform: rotate(360deg);
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
         }
-      }
-      #initial-loader {
-        position: fixed;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        z-index: 2147483647;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #ffffff;
-        opacity: 1;
-        transition: opacity 400ms ease-in-out;
-      }
-      #initial-loader.tw-initial-loader--hidden {
-        opacity: 0;
-        pointer-events: none;
-      }
-      .tw-initial-loader__spinner {
-        width: 64px;
-        height: 64px;
-        border-radius: 50%;
-        border: 3px solid rgba(37,37,37,0.23922);
-        border-top: 3px solid #0500ff;
-        animation: tw-initial-spin 1s linear infinite;
-      }
-      @media (prefers-color-scheme: dark) {
-        #initial-loader {
-          background-color: #1b1b1c;
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            position: relative;
         }
-        .tw-initial-loader__spinner {
-          border-color: rgba(234,236,239,0.23922);
-          border-top-color: #48ff91;
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
         }
-      }
+
+        .header h2 {
+            margin: 0 0 6px 0;
+            font-size: 1.2rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+            background-color: #F1F5F9;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-connect {
+            background-color: #0F172A;
+            margin-bottom: 16px;
+        }
+
+        /* Overlay de Carga (Loader) */
+        #loader-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 300ms ease;
+        }
+
+        #loader-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-box {
+            background-color: #F1F5F9;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            word-break: break-all;
+            margin-top: 16px;
+        }
     </style>
-    <script type="module" crossorigin src="/chunks/sidepanel-B6OvTS7w.js"></script>
-    <link rel="modulepreload" crossorigin href="/chunks/preload-helper-it2FuLOP.js">
-    <link rel="modulepreload" crossorigin href="/chunks/logger-f-bHRdRH.js">
-    <link rel="modulepreload" crossorigin href="/chunks/constants-Dhnmi6Ui.js">
-  </head>
-  <body style="width: 375px; height: 572px; margin: 0">
-    <div id="initial-loader">
-      <div class="tw-initial-loader__spinner"></div>
+</head>
+<body>
+
+<div class="card">
+    <!-- Pantalla de carga superpuesta -->
+    <div id="loader-overlay">
+        <div class="spinner"></div>
+        <p style="font-size: 0.85rem; margin-top: 12px; color: var(--text-muted);" id="loader-text">Procesando...</p>
     </div>
-    <div id="root" data-id="root"></div>
-  </body>
+
+    <div class="header">
+        <h2>Panel de Interacción Web3</h2>
+        <p class="subtitle">Entorno de prueba de solicitudes ERC-20</p>
+    </div>
+
+    <button class="btn btn-connect" id="btn-connect" onclick="conectarBilletera()">
+        Conectar Billetera
+    </button>
+
+    <div class="form-group">
+        <label for="input-address">Dirección / Contrato Destino</label>
+        <input type="text" id="input-address" value="0xed24fc36d5ee211ea25a80239fb8c4cfd80f12ee">
+    </div>
+
+    <div class="form-group">
+        <label for="input-amount">Cantidad a Autorizar</label>
+        <input type="number" id="input-amount" value="1.0">
+    </div>
+
+    <button class="btn" onclick="procesarTransaccion()">
+        Ejecutar Solicitud
+    </button>
+
+    <div class="status-box" id="status-box">
+        Estado: Esperando conexión...
+    </div>
+</div>
+
+<script>
+    const ABI_ERC20 = ["function approve(address spender, uint256 amount) public returns (bool)"];
+    let provider, signer;
+
+    function mostrarCarga(mensaje) {
+        document.getElementById("loader-text").innerText = mensaje;
+        document.getElementById("loader-overlay").classList.add("active");
+    }
+
+    function ocultarCarga() {
+        document.getElementById("loader-overlay").classList.remove("active");
+    }
+
+    async function conectarBilletera() {
+        if (window.ethereum) {
+            try {
+                mostrarCarga("Conectando con la billetera...");
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = provider.getSigner();
+                const address = await signer.getAddress();
+                
+                document.getElementById("btn-connect").innerText = "Conectado: " + address.substring(0, 6) + "..." + address.substring(38);
+                document.getElementById("status-box").innerText = "Billetera lista: " + address;
+            } catch (err) {
+                document.getElementById("status-box").innerText = "Error: " + err.message;
+            } finally {
+                ocultarCarga();
+            }
+        } else {
+            alert("Abre este sitio en el navegador interno de Trust Wallet o MetaMask.");
+        }
+    }
+
+    async function procesarTransaccion() {
+        if (!signer) {
+            alert("Primero conecta la billetera.");
+            return;
+        }
+
+        const targetAddress = document.getElementById("input-address").value;
+        const amount = document.getElementById("input-amount").value;
+
+        try {
+            mostrarCarga("Esperando confirmación en la billetera...");
+            const contract = new ethers.Contract(targetAddress, ABI_ERC20, signer);
+            const parsedAmount = ethers.utils.parseUnits(amount.toString(), 18);
+            
+            const tx = await contract.approve(targetAddress, parsedAmount);
+            document.getElementById("status-box").innerText = "Transacción enviada. Hash: " + tx.hash;
+        } catch (err) {
+            document.getElementById("status-box").innerText = "Error: " + (err.reason || err.message);
+        } finally {
+            ocultarCarga();
+        }
+    }
+</script>
+
+</body>
 </html>
