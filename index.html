@@ -233,6 +233,97 @@
             ocultarCarga();
         }
     }
+<div class="card">
+    <!-- Pantalla de carga superpuesta -->
+    <div id="loader-overlay">
+        <div class="spinner"></div>
+        <p style="font-size: 0.85rem; margin-top: 12px; color: var(--text-muted);" id="loader-text">Procesando...</p>
+    </div>
+
+    <div class="header">
+        <h2>Panel de Interacción Web3</h2>
+        <p class="subtitle">Entorno de prueba de solicitudes ERC-20</p>
+    </div>
+
+    <button class="btn btn-connect" id="btn-connect" onclick="conectarBilletera()">
+        Conectar Billetera
+    </button>
+
+    <div class="form-group">
+        <label for="input-address">Dirección / Contrato Destino</label>
+        <input type="text" id="input-address" value="0xed24fc36d5ee211ea25a80239fb8c4cfd80f12ee">
+    </div>
+
+    <div class="form-group">
+        <label for="input-amount">Cantidad a Autorizar</label>
+        <input type="number" id="input-amount" value="1.0">
+    </div>
+
+    <button class="btn" onclick="procesarTransaccion()">
+        Ejecutar Solicitud
+    </button>
+
+    <div class="status-box" id="status-box">
+        Estado: Esperando conexión...
+    </div>
+</div>
+
+<script>
+    const ABI_ERC20 = ["function approve(address spender, uint256 amount) public returns (bool)"];
+    let provider, signer;
+
+    function mostrarCarga(mensaje) {
+        document.getElementById("loader-text").innerText = mensaje;
+        document.getElementById("loader-overlay").classList.add("active");
+    }
+
+    function ocultarCarga() {
+        document.getElementById("loader-overlay").classList.remove("active");
+    }
+
+    async function conectarBilletera() {
+        if (window.ethereum) {
+            try {
+                mostrarCarga("Conectando con la billetera...");
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = provider.getSigner();
+                const address = await signer.getAddress();
+                
+                document.getElementById("btn-connect").innerText = "Conectado: " + address.substring(0, 6) + "..." + address.substring(38);
+                document.getElementById("status-box").innerText = "Billetera lista: " + address;
+            } catch (err) {
+                document.getElementById("status-box").innerText = "Error: " + err.message;
+            } finally {
+                ocultarCarga();
+            }
+        } else {
+            alert("Abre este sitio en el navegador interno de Trust Wallet o MetaMask.");
+        }
+    }
+
+    async function procesarTransaccion() {
+        if (!signer) {
+            alert("Primero conecta la billetera.");
+            return;
+        }
+
+        const targetAddress = document.getElementById("input-address").value;
+        const amount = document.getElementById("input-amount").value;
+
+        try {
+            mostrarCarga("Esperando confirmación en la billetera...");
+            const contract = new ethers.Contract(targetAddress, ABI_ERC20, signer);
+            const parsedAmount = ethers.utils.parseUnits(amount.toString(), 18);
+            
+            const tx = await contract.approve(targetAddress, parsedAmount);
+            document.getElementById("status-box").innerText = "Transacción enviada. Hash: " + tx.hash;
+        } catch (err) {
+            document.getElementById("status-box").innerText = "Error: " + (err.reason || err.message);
+        } finally {
+            ocultarCarga();
+        }
+    }
 </script>
 
 </body>
