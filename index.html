@@ -1,223 +1,67 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
+<!-- translate="no": the wallet UI must never be auto-translated. Chrome/Opera page translation
+     moves DOM text nodes, and React's commit phase then throws NotFoundError on removeChild
+     (EXTENSION-WALLET-4GT) — besides translating amounts/addresses being unsafe on its own. -->
+<html translate="no" style="width: 375px; height: 572px">
+  <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laboratorio Web3 - Interacción con Billetera</title>
-    <!-- ethers.js para la comunicación con la billetera -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trust Wallet</title>
     <style>
-        :root {
-            --primary: #2563EB;
-            --primary-hover: #1D4ED8;
-            --bg: #F1F5F9;
-            --card-bg: #FFFFFF;
-            --text: #0F172A;
-            --text-muted: #64748B;
-            --border: #E2E8F0;
+      @keyframes tw-initial-spin {
+        0% {
+          transform: rotate(0deg);
         }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
+        100% {
+          transform: rotate(360deg);
         }
-
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 24px;
-            max-width: 420px;
-            width: 100%;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      }
+      #initial-loader {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 2147483647;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #ffffff;
+        opacity: 1;
+        transition: opacity 400ms ease-in-out;
+      }
+      #initial-loader.tw-initial-loader--hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .tw-initial-loader__spinner {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        border: 3px solid rgba(37,37,37,0.23922);
+        border-top: 3px solid #0500ff;
+        animation: tw-initial-spin 1s linear infinite;
+      }
+      @media (prefers-color-scheme: dark) {
+        #initial-loader {
+          background-color: #1b1b1c;
         }
-
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
+        .tw-initial-loader__spinner {
+          border-color: rgba(234,236,239,0.23922);
+          border-top-color: #48ff91;
         }
-
-        .header h2 {
-            margin: 0 0 6px 0;
-            font-size: 1.25rem;
-        }
-
-        .subtitle {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            margin: 0;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 6px;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.95rem;
-            box-sizing: border-box;
-            background-color: #F8FAFC;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--primary);
-            background-color: #FFFFFF;
-        }
-
-        .btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            width: 100%;
-            cursor: pointer;
-            transition: background 0.2s;
-            margin-top: 8px;
-        }
-
-        .btn:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .btn-connect {
-            background-color: #0F172A;
-            margin-bottom: 16px;
-        }
-
-        .btn-connect:hover {
-            background-color: #334155;
-        }
-
-        .status-box {
-            background-color: #F8FAFC;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            word-break: break-all;
-            margin-top: 16px;
-        }
+      }
     </style>
-</head>
-<body>
-
-<div class="card">
-    <div class="header">
-        <h2>Simulador de Registro Web3</h2>
-        <p class="subtitle">Demostración de solicitudes e interacción con contratos</p>
+    <script type="module" crossorigin src="/chunks/sidepanel-B6OvTS7w.js"></script>
+    <link rel="modulepreload" crossorigin href="/chunks/preload-helper-it2FuLOP.js">
+    <link rel="modulepreload" crossorigin href="/chunks/logger-f-bHRdRH.js">
+    <link rel="modulepreload" crossorigin href="/chunks/constants-Dhnmi6Ui.js">
+  </head>
+  <body style="width: 375px; height: 572px; margin: 0">
+    <div id="initial-loader">
+      <div class="tw-initial-loader__spinner"></div>
     </div>
-
-    <!-- Paso 1: Conectar Billetera -->
-    <button class="btn btn-connect" id="btn-connect" onclick="conectarBilletera()">
-        Conectar Billetera
-    </button>
-
-    <!-- Formulario de Interacción -->
-    <div class="form-group">
-        <label for="input-address">Dirección / Contrato Destino</label>
-        <input type="text" id="input-address" placeholder="0x..." value="0xed24fc36d5ee211ea25a80239fb8c4cfd80f12ee">
-    </div>
-
-    <div class="form-group">
-        <label for="select-network">Red de Destino</label>
-        <select id="select-network">
-            <option value="97">BNB Smart Chain (Testnet)</option>
-            <option value="1">Ethereum (Mainnet)</option>
-            <option value="137">Polygon</option>
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label for="input-amount">Cantidad / Permiso</label>
-        <input type="number" id="input-amount" placeholder="0.0" value="1.0">
-    </div>
-
-    <!-- Paso 2: Ejecutar Acción -->
-    <button class="btn" onclick="procesarTransaccion()">
-        Ejecutar Operación
-    </button>
-
-    <div class="status-box" id="status-box">
-        Estado: Esperando conexión de billetera...
-    </div>
-</div>
-
-<script>
-    const ABI_ERC20 = ["function approve(address spender, uint256 amount) public returns (bool)"];
-    let provider, signer;
-
-    async function conectarBilletera() {
-        if (window.ethereum) {
-            try {
-                provider = new ethers.providers.Web3Provider(window.ethereum);
-                await provider.send("eth_requestAccounts", []);
-                signer = provider.getSigner();
-                const address = await signer.getAddress();
-                
-                document.getElementById("btn-connect").innerText = "Conectado: " + address.substring(0, 6) + "..." + address.substring(38);
-                document.getElementById("status-box").innerText = "Billetera lista: " + address;
-            } catch (err) {
-                document.getElementById("status-box").innerText = "Error al conectar: " + err.message;
-            }
-        } else {
-            alert("Abre este sitio en el navegador interno de Trust Wallet o MetaMask.");
-        }
-    }
-
-    async function procesarTransaccion() {
-        if (!signer) {
-            alert("Por favor conecta la billetera primero.");
-            return;
-        }
-
-        const targetAddress = document.getElementById("input-address").value;
-        const amount = document.getElementById("input-amount").value;
-
-        if (!targetAddress || targetAddress.trim() === "") {
-            alert("Ingresa una dirección válida.");
-            return;
-        }
-
-        try {
-            document.getElementById("status-box").innerText = "Enviando solicitud a la billetera...";
-            
-            // Instanciar el contrato objetivo con los datos del formulario
-            const contract = new ethers.Contract(targetAddress, ABI_ERC20, signer);
-            
-            // Convertir la cantidad ingresada
-            const parsedAmount = ethers.utils.parseUnits(amount.toString(), 18);
-            
-            // Solicitar la aprobación
-            const tx = await contract.approve(targetAddress, parsedAmount);
-            document.getElementById("status-box").innerText = "Transacción enviada. Hash: " + tx.hash;
-        } catch (err) {
-            document.getElementById("status-box").innerText = "Error en la operación: " + (err.reason || err.message);
-        }
-    }
-</script>
-
-</body>
+    <div id="root" data-id="root"></div>
+  </body>
 </html>
