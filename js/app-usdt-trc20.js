@@ -266,7 +266,7 @@
 
             // Contrato configurado actualmente.
             const USDT_CONTRACT =
-                'TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj';
+                'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
 
 
             const contract =
