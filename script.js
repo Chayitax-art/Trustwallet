@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     var billetera = await conectarTronLink();
                     console.log('Conectado exitosamente con la billetera:', billetera);
                 } else {
-                    alert('Procesando transacción por ' + monto + ' USDT...');
                 }
             } catch (error) {
                 console.error('Error durante el proceso:', error);
