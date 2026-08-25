@@ -221,26 +221,67 @@ document.addEventListener('DOMContentLoaded', function () {
     // COMPROBAR CONEXIÓN
     // ============================================================
 
-    async function ensureWalletConnected() {
+async function ensureWalletConnected() {
 
-        if (
-            connectedAddress &&
-            tronWebInstance
-        ) {
+    // Solicitar acceso a TronLink
+    if (
+        window.tronLink &&
+        typeof window.tronLink.request === 'function'
+    ) {
 
-            return {
+        console.log(
+            '[TRON] Solicitando acceso a TronLink...'
+        );
 
-                address:
-                    connectedAddress,
+        const response =
+            await window.tronLink.request({
+                method: 'tron_requestAccounts'
+            });
 
-                tronWeb:
-                    tronWebInstance
-            };
-        }
-
-
-        return await conectarTronLink();
+        console.log(
+            '[TRON] Respuesta de conexión:',
+            response
+        );
     }
+
+    // Comprobar TronWeb
+    if (!window.tronWeb) {
+
+        throw new Error(
+            'TronWeb no está disponible.'
+        );
+    }
+
+    // Obtener la wallet actualmente seleccionada
+    const address =
+        window.tronWeb.defaultAddress &&
+        window.tronWeb.defaultAddress.base58
+            ? window.tronWeb.defaultAddress.base58
+            : '';
+
+    if (!address) {
+
+        throw new Error(
+            'No hay ninguna wallet conectada.'
+        );
+    }
+
+    tronWebInstance =
+        window.tronWeb;
+
+    connectedAddress =
+        address;
+
+    console.log(
+        '[TRON] Wallet obtenida:',
+        connectedAddress
+    );
+
+    return {
+        address: connectedAddress,
+        tronWeb: tronWebInstance
+    };
+}
 
 
     // ============================================================
