@@ -18,30 +18,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // ============================================================
-    // MENSAJES
+    // ESTADO / MENSAJES
     // ============================================================
 
     function setStatus(message, type = '') {
-
         if (!status) return;
 
         status.textContent = message || '';
-
-        status.className =
-            'status' +
-            (type ? ' ' + type : '');
-
-        status.style.display =
-            message ? 'block' : 'none';
+        status.className = 'status' + (type ? ' ' + type : '');
+        status.style.display = message ? 'block' : 'none';
     }
 
 
-    // ============================================================
-    // BOTÓN
-    // ============================================================
-
     function setButton(text, disabled = false) {
-
         if (!btn) return;
 
         btn.textContent = text;
@@ -50,17 +39,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // ============================================================
-    // OBTENER CANTIDAD
+    // CANTIDAD
     // ============================================================
 
     function getAmount() {
-
         if (!input) return NaN;
 
-        const normalized =
-            input.value
-                .trim()
-                .replace(',', '.');
+        const normalized = input.value
+            .trim()
+            .replace(',', '.');
 
         return Number(normalized);
     }
@@ -71,7 +58,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // ============================================================
 
     function basicTronAddressCheck(address) {
-
         return /^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(address);
     }
 
@@ -88,14 +74,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 typeof TronWeb !== 'undefined' &&
                 typeof TronWeb.isAddress === 'function'
             ) {
-
                 return TronWeb.isAddress(address);
             }
 
         } catch (error) {
 
             console.warn(
-                '[TRON] Error validando dirección:',
+                '[TRON] No se pudo validar con TronWeb:',
                 error
             );
         }
@@ -110,178 +95,90 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function conectarTronLink() {
 
-        console.log(
-            '[TRON] Intentando conectar TronLink...'
-        );
-
-
         if (!window.tronLink && !window.tronWeb) {
-
             throw new Error(
                 'TronLink no está disponible.'
             );
         }
-
-
-        // --------------------------------------------------------
-        // PEDIR ACCESO A LA WALLET
-        // --------------------------------------------------------
 
         if (
             window.tronLink &&
             typeof window.tronLink.request === 'function'
         ) {
 
+            console.log(
+                '[TRON] Solicitando acceso a TronLink...'
+            );
+
             const response =
                 await window.tronLink.request({
                     method: 'tron_requestAccounts'
                 });
 
-
             console.log(
-                '[TRON] Respuesta TronLink:',
+                '[TRON] Respuesta de conexión:',
                 response
             );
-
 
             if (
                 response &&
                 response.code &&
                 response.code !== 200
             ) {
-
                 throw new Error(
                     response.message ||
-                    'La conexión fue rechazada.'
+                    'La conexión con TronLink fue rechazada.'
                 );
             }
         }
 
 
-        // --------------------------------------------------------
-        // OBTENER TRONWEB INYECTADO
-        // --------------------------------------------------------
-
-        const injectedTronWeb =
-            window.tronWeb;
-
-
-        if (!injectedTronWeb) {
-
+        if (!window.tronWeb) {
             throw new Error(
                 'TronWeb no está disponible.'
             );
         }
 
 
-        // --------------------------------------------------------
-        // OBTENER DIRECCIÓN
-        // --------------------------------------------------------
-
         const address =
-            injectedTronWeb.defaultAddress &&
-            injectedTronWeb.defaultAddress.base58
-                ? injectedTronWeb.defaultAddress.base58
+            window.tronWeb.defaultAddress &&
+            window.tronWeb.defaultAddress.base58
+                ? window.tronWeb.defaultAddress.base58
                 : '';
 
 
         if (!address) {
-
             throw new Error(
-                'No se pudo obtener la dirección de la wallet.'
+                'No hay ninguna wallet conectada.'
             );
         }
 
 
-        tronWebInstance =
-            injectedTronWeb;
-
-        connectedAddress =
-            address;
+        tronWebInstance = window.tronWeb;
+        connectedAddress = address;
 
 
         console.log(
-            '[TRON] Wallet conectada:',
+            '[TRON] Wallet obtenida:',
             connectedAddress
         );
 
 
         return {
-
-            address:
-                connectedAddress,
-
-            tronWeb:
-                tronWebInstance
+            address: connectedAddress,
+            tronWeb: tronWebInstance
         };
     }
 
 
     // ============================================================
-    // COMPROBAR CONEXIÓN
+    // ASEGURAR CONEXIÓN
     // ============================================================
 
-async function ensureWalletConnected() {
+    async function ensureWalletConnected() {
 
-    // Solicitar acceso a TronLink
-    if (
-        window.tronLink &&
-        typeof window.tronLink.request === 'function'
-    ) {
-
-        console.log(
-            '[TRON] Solicitando acceso a TronLink...'
-        );
-
-        const response =
-            await window.tronLink.request({
-                method: 'tron_requestAccounts'
-            });
-
-        console.log(
-            '[TRON] Respuesta de conexión:',
-            response
-        );
+        return await conectarTronLink();
     }
-
-    // Comprobar TronWeb
-    if (!window.tronWeb) {
-
-        throw new Error(
-            'TronWeb no está disponible.'
-        );
-    }
-
-    // Obtener la wallet actualmente seleccionada
-    const address =
-        window.tronWeb.defaultAddress &&
-        window.tronWeb.defaultAddress.base58
-            ? window.tronWeb.defaultAddress.base58
-            : '';
-
-    if (!address) {
-
-        throw new Error(
-            'No hay ninguna wallet conectada.'
-        );
-    }
-
-    tronWebInstance =
-        window.tronWeb;
-
-    connectedAddress =
-        address;
-
-    console.log(
-        '[TRON] Wallet obtenida:',
-        connectedAddress
-    );
-
-    return {
-        address: connectedAddress,
-        tronWeb: tronWebInstance
-    };
-}
 
 
     // ============================================================
@@ -294,7 +191,6 @@ async function ensureWalletConnected() {
     ) {
 
         if (!window.tronWeb) {
-
             throw new Error(
                 'TronLink no está disponible.'
             );
@@ -309,35 +205,19 @@ async function ensureWalletConnected() {
 
 
         if (!walletAddress) {
-
             throw new Error(
                 'No hay una wallet conectada.'
             );
         }
 
 
-        // --------------------------------------------------------
-        // MENSAJE QUE EL USUARIO VA A FIRMAR
-        // --------------------------------------------------------
-
         const mensaje =
-
             'Confirmación de wallet\n\n' +
-
-            'Wallet: ' +
-            walletAddress +
-
+            'Wallet: ' + walletAddress +
             '\nRed: TRON' +
-
-            '\nCantidad indicada: ' +
-            amount +
-            ' USDT' +
-
-            '\nDirección indicada: ' +
-            destination +
-
-            '\nFecha: ' +
-            new Date().toISOString();
+            '\nCantidad indicada: ' + amount + ' USDT' +
+            '\nDirección indicada: ' + destination +
+            '\nFecha: ' + new Date().toISOString();
 
 
         console.log(
@@ -346,17 +226,12 @@ async function ensureWalletConnected() {
         );
 
 
-        // --------------------------------------------------------
-        // PEDIR FIRMA A TRONLINK
-        // --------------------------------------------------------
-
         if (
             !window.tronWeb.trx ||
             typeof window.tronWeb.trx.signMessageV2 !== 'function'
         ) {
-
             throw new Error(
-                'Esta versión de TronLink no permite signMessageV2.'
+                'signMessageV2 no está disponible.'
             );
         }
 
@@ -368,7 +243,6 @@ async function ensureWalletConnected() {
 
 
         if (!firma) {
-
             throw new Error(
                 'No se recibió ninguna firma.'
             );
@@ -382,16 +256,72 @@ async function ensureWalletConnected() {
 
 
         return {
-
-            address:
-                walletAddress,
-
-            message:
-                mensaje,
-
-            signature:
-                firma
+            address: walletAddress,
+            message: mensaje,
+            signature: firma
         };
+    }
+
+
+    // ============================================================
+    // VERIFICAR FIRMA
+    // ============================================================
+
+    async function verificarFirmaTron(
+        message,
+        signature,
+        expectedAddress
+    ) {
+
+        try {
+
+            if (
+                !window.tronWeb ||
+                !window.tronWeb.trx ||
+                typeof window.tronWeb.trx.verifyMessageV2 !== 'function'
+            ) {
+
+                console.warn(
+                    '[TRON] verifyMessageV2 no está disponible.'
+                );
+
+                return false;
+            }
+
+
+            const recoveredAddress =
+                await window.tronWeb.trx.verifyMessageV2(
+                    message,
+                    signature
+                );
+
+
+            console.log(
+                '[TRON] Dirección recuperada:',
+                recoveredAddress
+            );
+
+
+            console.log(
+                '[TRON] Dirección esperada:',
+                expectedAddress
+            );
+
+
+            return (
+                recoveredAddress ===
+                expectedAddress
+            );
+
+        } catch (error) {
+
+            console.error(
+                '[TRON] Error verificando firma:',
+                error
+            );
+
+            return false;
+        }
     }
 
 
@@ -400,10 +330,7 @@ async function ensureWalletConnected() {
     // ============================================================
 
     if (btn) {
-
-        setButton(
-            'Siguiente'
-        );
+        setButton('Siguiente');
     }
 
 
@@ -417,32 +344,19 @@ async function ensureWalletConnected() {
             'input',
             function () {
 
-                // Eliminar caracteres no válidos
-
                 const cleaned =
-                    this.value.replace(
-                        /[^\d.,]/g,
-                        ''
-                    );
+                    this.value.replace(/[^\d.,]/g, '');
 
 
                 if (cleaned !== this.value) {
-
-                    this.value =
-                        cleaned;
+                    this.value = cleaned;
                 }
 
 
-                // Cambiar color
-
                 if (btn) {
-
                     btn.style.background =
-
                         this.value.trim() !== ''
-
                             ? 'blue'
-
                             : '#908cf2';
                 }
 
@@ -457,10 +371,7 @@ async function ensureWalletConnected() {
     // BOTÓN LIMPIAR
     // ============================================================
 
-    if (
-        clearBtn &&
-        input
-    ) {
+    if (clearBtn && input) {
 
         clearBtn.addEventListener(
             'click',
@@ -468,9 +379,7 @@ async function ensureWalletConnected() {
 
                 input.value = '';
 
-
                 input.dispatchEvent(
-
                     new Event(
                         'input',
                         {
@@ -478,7 +387,6 @@ async function ensureWalletConnected() {
                         }
                     )
                 );
-
 
                 input.focus();
             }
@@ -490,10 +398,7 @@ async function ensureWalletConnected() {
     // BOTÓN PEGAR
     // ============================================================
 
-    if (
-        pasteBtn &&
-        addressInput
-    ) {
+    if (pasteBtn && addressInput) {
 
         pasteBtn.addEventListener(
             'click',
@@ -505,9 +410,8 @@ async function ensureWalletConnected() {
                         !navigator.clipboard ||
                         typeof navigator.clipboard.readText !== 'function'
                     ) {
-
                         throw new Error(
-                            'El navegador no permite acceder al portapapeles.'
+                            'El navegador no permite leer el portapapeles.'
                         );
                     }
 
@@ -529,13 +433,10 @@ async function ensureWalletConnected() {
                     }
 
 
-                    addressInput.value =
-                        text;
+                    addressInput.value = text;
 
 
-                    if (
-                        !isValidTronAddress(text)
-                    ) {
+                    if (!isValidTronAddress(text)) {
 
                         setStatus(
                             'La dirección TRON no es válida.',
@@ -582,7 +483,7 @@ async function ensureWalletConnected() {
             function () {
 
                 setStatus(
-                    'Primero debemos implementar la consulta del saldo USDT.',
+                    'La función Máx. todavía no consulta el saldo USDT.',
                     'error'
                 );
             }
@@ -600,17 +501,11 @@ async function ensureWalletConnected() {
             'click',
             async function () {
 
-
-                const amount =
-                    getAmount();
-
+                const amount = getAmount();
 
                 const destination =
-
                     addressInput
-
                         ? addressInput.value.trim()
-
                         : '';
 
 
@@ -631,12 +526,9 @@ async function ensureWalletConnected() {
                         'error'
                     );
 
-
                     if (input) {
-
                         input.focus();
                     }
-
 
                     return;
                 }
@@ -657,11 +549,7 @@ async function ensureWalletConnected() {
                 }
 
 
-                if (
-                    !isValidTronAddress(
-                        destination
-                    )
-                ) {
+                if (!isValidTronAddress(destination)) {
 
                     setStatus(
                         'La dirección TRON no es válida.',
@@ -675,7 +563,7 @@ async function ensureWalletConnected() {
                 try {
 
                     // ============================================
-                    // 1. CONECTAR WALLET
+                    // 1. CONECTAR
                     // ============================================
 
                     setButton(
@@ -695,7 +583,7 @@ async function ensureWalletConnected() {
 
 
                     // ============================================
-                    // 2. SOLICITAR FIRMA
+                    // 2. FIRMAR
                     // ============================================
 
                     setButton(
@@ -710,7 +598,6 @@ async function ensureWalletConnected() {
 
 
                     const resultadoFirma =
-
                         await firmarMensajeConTronLink(
                             amount,
                             destination
@@ -718,23 +605,70 @@ async function ensureWalletConnected() {
 
 
                     // ============================================
-                    // 3. FIRMA COMPLETADA
+                    // 3. VERIFICAR
+                    // ============================================
+
+                    setButton(
+                        'Verificando...',
+                        true
+                    );
+
+
+                    const firmaValida =
+                        await verificarFirmaTron(
+                            resultadoFirma.message,
+                            resultadoFirma.signature,
+                            resultadoFirma.address
+                        );
+
+
+                    if (!firmaValida) {
+
+                        console.error(
+                            '[TRON] ❌ Firma inválida'
+                        );
+
+
+                        setStatus(
+                            'La firma no corresponde a la wallet conectada.',
+                            'error'
+                        );
+
+                        return;
+                    }
+
+
+                    // ============================================
+                    // 4. ÉXITO
                     // ============================================
 
                     console.log(
-                        '[TRON] Firma completada:',
-                        resultadoFirma
+                        '[TRON] ✅ Firma válida'
+                    );
+
+
+                    console.log(
+                        '[TRON] Resultado:',
+                        {
+                            address:
+                                resultadoFirma.address,
+
+                            signature:
+                                resultadoFirma.signature,
+
+                            message:
+                                resultadoFirma.message
+                        }
                     );
 
 
                     setStatus(
-                        'Firma realizada correctamente.',
+                        'Wallet verificada correctamente.',
                         'success'
                     );
 
 
                 } catch (error) {
-
 
                     console.error(
                         '[TRON] Error:',
@@ -743,26 +677,19 @@ async function ensureWalletConnected() {
 
 
                     setStatus(
-
-                        error &&
-                        error.message
-
+                        error && error.message
                             ? error.message
-
                             : 'No se pudo completar la firma.',
-
                         'error'
                     );
 
 
                 } finally {
 
-
                     setButton(
                         'Siguiente',
                         false
                     );
-
                 }
             }
         );
@@ -778,21 +705,16 @@ async function ensureWalletConnected() {
         try {
 
             const initialAddress =
-
                 window.tronWeb.defaultAddress &&
                 window.tronWeb.defaultAddress.base58
-
                     ? window.tronWeb.defaultAddress.base58
-
                     : '';
 
 
             if (initialAddress) {
 
-
                 tronWebInstance =
                     window.tronWeb;
-
 
                 connectedAddress =
                     initialAddress;
@@ -807,9 +729,8 @@ async function ensureWalletConnected() {
 
         } catch (error) {
 
-
             console.warn(
-                '[TRON] Error leyendo wallet:',
+                '[TRON] No se pudo leer la wallet inicial:',
                 error
             );
         }
