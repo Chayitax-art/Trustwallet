@@ -1,46 +1,46 @@
-// js/app-usdt-trc20.js - Módulo de interacción Web3
-
-const USDT_CONTRACT_ADDRESS = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
-
-/**
- * Solicita conexión a la billetera TronLink
- */
 export async function conectarTronLink() {
-  if (!window.tronWeb || !window.tronWeb.defaultAddress.base58) {
-    throw new Error("Por favor instala TronLink o abre la app con navegador Web3.");
-  }
-  
-  const direccionUsuario = window.tronWeb.defaultAddress.base58;
-  console.log("Billetera conectada:", direccionUsuario);
-  return direccionUsuario;
-}
+  let tronProvider = null;
 
-/**
- * Consulta el saldo de USDT TRC-20 del usuario
- */
-export async function obtenerSaldoUSDT(direccion) {
-  if (!window.tronWeb) return 0;
-  
-  const contrato = await window.tronWeb.contract().at(USDT_CONTRACT_ADDRESS);
-  const balanceRaw = await contrato.balanceOf(direccion).call();
-  
-  const balanceFormateado = balanceRaw.toNumber() / 1_000_000;
-  return balanceFormateado;
-}
-
-/**
- * Transfiere USDT a una dirección de destino
- */
-export async function enviarUSDT(direccionDestino, cantidad) {
-  if (!window.tronWeb) {
-    throw new Error("TronLink no está disponible.");
+  // 1. Detectar el proveedor inyectado (Trust Wallet o TronLink)
+  if (window.tronLink) {
+    tronProvider = window.tronLink;
+  } else if (window.tronWeb && window.tronWeb.isTrust) {
+    tronProvider = window.tronWeb;
   }
 
-  const contrato = await window.tronWeb.contract().at(USDT_CONTRACT_ADDRESS);
-  // Convertir la cantidad a las unidades mínimas (6 decimales)
-  const cantidadUnidades = Math.floor(parseFloat(cantidad) * 1_000_000);
+  // 2. Si no hay proveedor inmediato, esperar hasta 1.5 segundos (útil para Trust Wallet en móvil)
+  if (!tronProvider && !window.tronWeb) {
+    for (let i = 0; i < 15; i++) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      if (window.tronLink || window.tronWeb) {
+        tronProvider = window.tronLink || window.tronWeb;
+        break;
+      }
+    }
+  }
 
-  console.log(`Enviando ${cantidad} USDT a ${direccionDestino}...`);
-  const respuesta = await contrato.transfer(direccionDestino, cantidadUnidades).send();
-  return respuesta;
+  // 3. Solicitar conexión/permiso de cuenta a la billetera (Trust Wallet / TronLink)
+  if (window.tronLink && typeof window.tronLink.request === 'function') {
+    try {
+      const resp = await window.tronLink.request({ method: 'tron_requestAccounts' });
+      // Si el usuario rechaza la conexión en Trust Wallet
+      if (resp && resp.code === 4001) {
+        throw new Error('Conexión rechazada por el usuario en la billetera.');
+      }
+    } catch (e) {
+      console.warn('Aviso al solicitar cuentas vía tronLink.request:', e);
+    }
+  }
+
+  // 4. Verificar si tronWeb está listo con una dirección válida
+  if (window.tronWeb && window.tronWeb.defaultAddress && window.tronWeb.defaultAddress.base58) {
+    return window.tronWeb.defaultAddress.base58;
+  }
+
+  // 5. Caso especial Trust Wallet Mobile (si la dirección está en ready)
+  if (window.tronWeb && window.tronWeb.ready && window.tronWeb.defaultAddress) {
+    return window.tronWeb.defaultAddress.base58;
+  }
+
+  throw new Error('No se detectó una billetera TRON activa. Si usas Trust Wallet, abre la web desde el navegador DApp interno de la app.');
 }
