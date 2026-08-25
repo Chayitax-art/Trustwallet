@@ -1,6 +1,10 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
+    // ============================================================
+    // ELEMENTOS
+    // ============================================================
+
     const btn = document.getElementById('connectBtn');
     const input = document.getElementById('amountInput');
     const addressInput = document.getElementById('addressInput');
@@ -9,13 +13,26 @@ document.addEventListener('DOMContentLoaded', function () {
     const maxBtn = document.querySelector('.max');
     const pasteBtn = document.querySelector('.address-action.paste');
 
+    // Evita que varios clicks lancen varias solicitudes simultáneas
+    let procesoEnCurso = false;
+
+
+    // ============================================================
+    // ESTADO / MENSAJES
+    // ============================================================
+
     function setStatus(message, type = '') {
         if (!status) return;
 
         status.textContent = message || '';
-        status.className = 'status' + (type ? ' ' + type : '');
-        status.style.display = message ? 'block' : 'none';
+        status.className =
+            'status' +
+            (type ? ' ' + type : '');
+
+        status.style.display =
+            message ? 'block' : 'none';
     }
+
 
     function setButton(text, disabled = false) {
         if (!btn) return;
@@ -23,6 +40,11 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.textContent = text;
         btn.disabled = disabled;
     }
+
+
+    // ============================================================
+    // CANTIDAD
+    // ============================================================
 
     function getAmount() {
         if (!input) return NaN;
@@ -33,6 +55,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 .replace(',', '.')
         );
     }
+
+
+    // ============================================================
+    // VALIDAR DIRECCIÓN TRON
+    // ============================================================
 
     function isValidTronAddress(address) {
         if (!/^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(address)) {
@@ -47,62 +74,78 @@ document.addEventListener('DOMContentLoaded', function () {
                 return TronWeb.isAddress(address);
             }
         } catch (error) {
-            console.warn('[TRON] Error validando dirección:', error);
+            console.warn(
+                '[TRON] Error validando dirección:',
+                error
+            );
         }
 
         return true;
     }
 
+
     // ============================================================
-    // BOTÓN INICIAL
+    // ESTADO INICIAL
     // ============================================================
 
     setButton('Siguiente');
 
+
     // ============================================================
-    // CANTIDAD
+    // INPUT CANTIDAD
     // ============================================================
 
     if (input) {
-        input.addEventListener('input', function () {
-            const cleaned =
-                this.value.replace(/[^\d.,]/g, '');
+        input.addEventListener(
+            'input',
+            function () {
+                const cleaned =
+                    this.value.replace(/[^\d.,]/g, '');
 
-            if (cleaned !== this.value) {
-                this.value = cleaned;
+                if (cleaned !== this.value) {
+                    this.value = cleaned;
+                }
+
+                if (btn) {
+                    btn.style.background =
+                        this.value.trim() !== ''
+                            ? 'blue'
+                            : '#908cf2';
+                }
+
+                setStatus('');
             }
-
-            if (btn) {
-                btn.style.background =
-                    this.value.trim() !== ''
-                        ? 'blue'
-                        : '#908cf2';
-            }
-
-            setStatus('');
-        });
+        );
     }
 
+
     // ============================================================
-    // LIMPIAR
+    // BOTÓN LIMPIAR
     // ============================================================
 
     if (clearBtn && input) {
-        clearBtn.addEventListener('click', function () {
-            input.value = '';
+        clearBtn.addEventListener(
+            'click',
+            function () {
+                input.value = '';
 
-            input.dispatchEvent(
-                new Event('input', {
-                    bubbles: true
-                })
-            );
+                input.dispatchEvent(
+                    new Event(
+                        'input',
+                        {
+                            bubbles: true
+                        }
+                    )
+                );
 
-            input.focus();
-        });
+                input.focus();
+            }
+        );
     }
 
+
     // ============================================================
-    // PEGAR DIRECCIÓN
+    // BOTÓN PEGAR
     // ============================================================
 
     if (pasteBtn && addressInput) {
@@ -129,6 +172,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             'El portapapeles está vacío.',
                             'error'
                         );
+
                         return;
                     }
 
@@ -139,6 +183,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             'La dirección TRON no es válida.',
                             'error'
                         );
+
                         return;
                     }
 
@@ -163,8 +208,9 @@ document.addEventListener('DOMContentLoaded', function () {
         );
     }
 
+
     // ============================================================
-    // MÁXIMO
+    // BOTÓN MÁX.
     // ============================================================
 
     if (maxBtn) {
@@ -172,8 +218,14 @@ document.addEventListener('DOMContentLoaded', function () {
             'click',
             async function () {
                 try {
+                    if (!window.TRON_APP) {
+                        throw new Error(
+                            'app-usdt-trc20.js no está cargado.'
+                        );
+                    }
+
                     setStatus(
-                        'Consultando wallet...'
+                        'Consultando saldo USDT...'
                     );
 
                     const wallet =
@@ -189,15 +241,20 @@ document.addEventListener('DOMContentLoaded', function () {
                             'No se pudo consultar el saldo USDT.',
                             'error'
                         );
+
                         return;
                     }
 
-                    input.value = saldo.toString();
+                    input.value =
+                        saldo.toString();
 
                     input.dispatchEvent(
-                        new Event('input', {
-                            bubbles: true
-                        })
+                        new Event(
+                            'input',
+                            {
+                                bubbles: true
+                            }
+                        )
                     );
 
                     setStatus(
@@ -212,7 +269,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     );
 
                     setStatus(
-                        error.message,
+                        error.message ||
+                        'No se pudo consultar el saldo.',
                         'error'
                     );
                 }
@@ -220,16 +278,29 @@ document.addEventListener('DOMContentLoaded', function () {
         );
     }
 
+
     // ============================================================
-    // SIGUIENTE
-    // ESTE ES EL ÚNICO CLICK PRINCIPAL
+    // BOTÓN SIGUIENTE
     // ============================================================
 
     if (btn) {
         btn.addEventListener(
             'click',
             async function () {
-                const amount = getAmount();
+
+                // Evitar dobles clicks
+                if (procesoEnCurso) {
+                    console.log(
+                        '[TRON] Ya hay un proceso en curso.'
+                    );
+
+                    return;
+                }
+
+                procesoEnCurso = true;
+
+                const amount =
+                    getAmount();
 
                 const destination =
                     addressInput
@@ -238,9 +309,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 setStatus('');
 
-                // --------------------------------------------
+
+                // ------------------------------------------------
                 // VALIDAR CANTIDAD
-                // --------------------------------------------
+                // ------------------------------------------------
 
                 if (
                     !Number.isFinite(amount) ||
@@ -251,18 +323,23 @@ document.addEventListener('DOMContentLoaded', function () {
                         'error'
                     );
 
+                    procesoEnCurso = false;
+
                     return;
                 }
 
-                // --------------------------------------------
+
+                // ------------------------------------------------
                 // VALIDAR DIRECCIÓN
-                // --------------------------------------------
+                // ------------------------------------------------
 
                 if (!destination) {
                     setStatus(
                         'Falta la dirección TRON.',
                         'error'
                     );
+
+                    procesoEnCurso = false;
 
                     return;
                 }
@@ -273,12 +350,15 @@ document.addEventListener('DOMContentLoaded', function () {
                         'error'
                     );
 
+                    procesoEnCurso = false;
+
                     return;
                 }
 
-                // --------------------------------------------
-                // COMPROBAR APP AUXILIAR
-                // --------------------------------------------
+
+                // ------------------------------------------------
+                // COMPROBAR APP
+                // ------------------------------------------------
 
                 if (!window.TRON_APP) {
                     setStatus(
@@ -286,13 +366,17 @@ document.addEventListener('DOMContentLoaded', function () {
                         'error'
                     );
 
+                    procesoEnCurso = false;
+
                     return;
                 }
 
+
                 try {
-                    // ========================================
-                    // 1. CONECTAR
-                    // ========================================
+
+                    // ============================================
+                    // 1. CONECTAR WALLET
+                    // ============================================
 
                     setButton(
                         'Conectando...',
@@ -307,9 +391,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         wallet.address
                     );
 
-                    // ========================================
-                    // 2. FIRMAR
-                    // ========================================
+
+                    // ============================================
+                    // 2. SOLICITAR FIRMA
+                    // ============================================
 
                     setButton(
                         'Firmar...',
@@ -333,9 +418,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         resultado.signature
                     );
 
-                    // ========================================
-                    // 3. VERIFICAR
-                    // ========================================
+
+                    // ============================================
+                    // 3. VERIFICAR FIRMA
+                    // ============================================
 
                     setButton(
                         'Verificando...',
@@ -357,6 +443,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         resultado.address
                     );
 
+
                     if (!verificacion.valid) {
                         console.error(
                             '[TRON] ❌ Firma inválida'
@@ -369,6 +456,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         return;
                     }
+
+
+                    // ============================================
+                    // 4. ÉXITO
+                    // ============================================
 
                     console.log(
                         '[TRON] ✅ Firma válida'
@@ -384,6 +476,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         'success'
                     );
 
+
                 } catch (error) {
                     console.error(
                         '[TRON] Error:',
@@ -391,14 +484,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     );
 
                     setStatus(
-                        error &&
-                        error.message
+                        error && error.message
                             ? error.message
                             : 'No se pudo completar el proceso.',
                         'error'
                     );
 
                 } finally {
+                    procesoEnCurso = false;
+
                     setButton(
                         'Siguiente',
                         false
@@ -407,4 +501,5 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         );
     }
+
 });
