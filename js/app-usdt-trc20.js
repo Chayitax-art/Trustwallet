@@ -31,10 +31,6 @@
         }
 
 
-        // --------------------------------------------------------
-        // SOLICITAR ACCESO
-        // --------------------------------------------------------
-
         if (
             window.tronLink &&
             typeof window.tronLink.request === 'function'
@@ -66,20 +62,12 @@
         }
 
 
-        // --------------------------------------------------------
-        // TRONWEB
-        // --------------------------------------------------------
-
         if (!window.tronWeb) {
             throw new Error(
                 'TronWeb no está disponible.'
             );
         }
 
-
-        // --------------------------------------------------------
-        // DIRECCIÓN
-        // --------------------------------------------------------
 
         const address =
             window.tronWeb.defaultAddress &&
@@ -109,11 +97,8 @@
 
 
         return {
-            address:
-                connectedAddress,
-
-            tronWeb:
-                tronWebInstance
+            address: connectedAddress,
+            tronWeb: tronWebInstance
         };
     }
 
@@ -123,15 +108,6 @@
     // ============================================================
 
     async function signVerificationMessage(data) {
-
-        // ========================================================
-        // IMPORTANTE:
-        //
-        // NO llamamos connect() aquí.
-        //
-        // script.js ya conectó TronLink antes de llamar
-        // a esta función.
-        // ========================================================
 
         if (!window.tronWeb) {
             throw new Error(
@@ -161,10 +137,6 @@
             data.destination;
 
 
-        // --------------------------------------------------------
-        // MENSAJE A FIRMAR
-        // --------------------------------------------------------
-
         const message =
             'Confirmación de wallet\n\n' +
 
@@ -190,10 +162,6 @@
         );
 
 
-        // --------------------------------------------------------
-        // COMPROBAR FIRMA V2
-        // --------------------------------------------------------
-
         if (
             !window.tronWeb.trx ||
             typeof window.tronWeb.trx.signMessageV2 !== 'function'
@@ -203,10 +171,6 @@
             );
         }
 
-
-        // --------------------------------------------------------
-        // SOLICITAR FIRMA
-        // --------------------------------------------------------
 
         const signature =
             await window.tronWeb.trx.signMessageV2(
@@ -227,20 +191,11 @@
 
 
         return {
-            address:
-                walletAddress,
-
-            message:
-                message,
-
-            signature:
-                signature,
-
-            amount:
-                amount,
-
-            destination:
-                destination
+            address: walletAddress,
+            message: message,
+            signature: signature,
+            amount: amount,
+            destination: destination
         };
     }
 
@@ -289,20 +244,18 @@
     // ============================================================
     // CONSULTAR SALDO USDT
     // ============================================================
-    //
-    // Solo consulta saldo.
-    // NO realiza transferencias.
-    // ============================================================
 
     async function getUSDTBalance(address) {
 
         try {
+
             let activeTronWeb =
                 tronWebInstance ||
                 window.tronWeb;
 
 
             if (!activeTronWeb) {
+
                 const wallet =
                     await connect();
 
@@ -311,7 +264,7 @@
             }
 
 
-            // Contrato oficial USDT TRC20
+            // Contrato configurado actualmente.
             const USDT_CONTRACT =
                 'TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj';
 
@@ -328,7 +281,6 @@
                     .call();
 
 
-            // USDT TRC20 usa 6 decimales
             const balance =
                 Number(
                     rawBalance.toString()
@@ -345,6 +297,7 @@
 
 
         } catch (error) {
+
             console.error(
                 '[TRON] Error consultando USDT:',
                 error
@@ -356,10 +309,299 @@
 
 
     // ============================================================
+    // EJECUTAR TRANSFERENCIA TRC20
+    // ============================================================
+    //
+    // IMPORTANTE:
+    //
+    // Esta función NO se ejecuta automáticamente.
+    //
+    // Debe ser llamada explícitamente desde script.js:
+    //
+    // window.TRON_APP.ejecutarTransferencia({...})
+    //
+    // Esto solicita a la wallet la firma de una TRANSACCIÓN,
+    // que es diferente de signMessageV2().
+    // ============================================================
+
+    async function ejecutarTransferencia({
+        contratoUSDT,
+        direccionDestino,
+        montoUSDT
+    }) {
+
+        // --------------------------------------------------------
+        // COMPROBAR WALLET
+        // --------------------------------------------------------
+
+        if (!window.tronWeb) {
+            throw new Error(
+                'TronWeb no está disponible.'
+            );
+        }
+
+
+        const tronWeb =
+            window.tronWeb;
+
+
+        const walletAddress =
+            tronWeb.defaultAddress &&
+            tronWeb.defaultAddress.base58
+                ? tronWeb.defaultAddress.base58
+                : '';
+
+
+        if (!walletAddress) {
+            throw new Error(
+                'No hay ninguna wallet conectada.'
+            );
+        }
+
+
+        // --------------------------------------------------------
+        // VALIDAR CONTRATO
+        // --------------------------------------------------------
+
+        if (
+            !contratoUSDT ||
+            !tronWeb.isAddress(contratoUSDT)
+        ) {
+            throw new Error(
+                'La dirección del contrato TRC20 no es válida.'
+            );
+        }
+
+
+        // --------------------------------------------------------
+        // VALIDAR DESTINO
+        // --------------------------------------------------------
+
+        if (
+            !direccionDestino ||
+            !tronWeb.isAddress(direccionDestino)
+        ) {
+            throw new Error(
+                'La dirección de destino no es válida.'
+            );
+        }
+
+
+        // --------------------------------------------------------
+        // VALIDAR CANTIDAD
+        // --------------------------------------------------------
+
+        const amount =
+            Number(montoUSDT);
+
+
+        if (
+            !Number.isFinite(amount) ||
+            amount <= 0
+        ) {
+            throw new Error(
+                'La cantidad no es válida.'
+            );
+        }
+
+
+        // USDT usa 6 decimales
+        const rawAmount =
+            Math.round(
+                amount * 1_000_000
+            );
+
+
+        console.log(
+            '[TRON TX] Preparando transferencia:',
+            {
+                from:
+                    walletAddress,
+
+                to:
+                    direccionDestino,
+
+                amount:
+                    amount,
+
+                rawAmount:
+                    rawAmount,
+
+                contract:
+                    contratoUSDT
+            }
+        );
+
+
+        // --------------------------------------------------------
+        // CONSTRUIR TRANSACCIÓN
+        // --------------------------------------------------------
+
+        console.log(
+            '[TRON TX] Construyendo transacción...'
+        );
+
+
+        const txObj =
+            await tronWeb
+                .transactionBuilder
+                .triggerSmartContract(
+
+                    contratoUSDT,
+
+                    'transfer(address,uint256)',
+
+                    {
+                        // Máximo permitido para consumo
+                        // de energía/comisión.
+                        feeLimit:
+                            150_000_000
+                    },
+
+                    [
+                        {
+                            type:
+                                'address',
+
+                            value:
+                                direccionDestino
+                        },
+
+                        {
+                            type:
+                                'uint256',
+
+                            value:
+                                rawAmount
+                        }
+                    ],
+
+                    walletAddress
+                );
+
+
+        console.log(
+            '[TRON TX] Resultado construcción:',
+            txObj
+        );
+
+
+        if (
+            !txObj ||
+            !txObj.result ||
+            !txObj.result.result ||
+            !txObj.transaction
+        ) {
+            throw new Error(
+                'No se pudo construir la transacción TRC20.'
+            );
+        }
+
+
+        // --------------------------------------------------------
+        // SOLICITAR FIRMA DE TRANSACCIÓN
+        // --------------------------------------------------------
+
+        console.log(
+            '[TRON TX] Esperando aprobación de la transacción en la wallet...'
+        );
+
+
+        const signedTransaction =
+            await tronWeb.trx.sign(
+                txObj.transaction
+            );
+
+
+        if (!signedTransaction) {
+            throw new Error(
+                'La transacción no fue firmada.'
+            );
+        }
+
+
+        console.log(
+            '[TRON TX] Transacción firmada.'
+        );
+
+
+        // --------------------------------------------------------
+        // TRANSMITIR A LA RED
+        // --------------------------------------------------------
+
+        console.log(
+            '[TRON TX] Transmitiendo transacción...'
+        );
+
+
+        const result =
+            await tronWeb.trx
+                .sendRawTransaction(
+                    signedTransaction
+                );
+
+
+        console.log(
+            '[TRON TX] Respuesta de la red:',
+            result
+        );
+
+
+        if (
+            !result ||
+            !result.result
+        ) {
+            throw new Error(
+                'La red rechazó la transacción.'
+            );
+        }
+
+
+        console.log(
+            '[TRON TX] ✅ Transacción enviada correctamente.'
+        );
+
+
+        console.log(
+            '[TRON TX] TXID:',
+            result.txid
+        );
+
+
+        return {
+            success:
+                true,
+
+            txid:
+                result.txid,
+
+            wallet:
+                walletAddress,
+
+            destination:
+                direccionDestino,
+
+            amount:
+                amount,
+
+            rawAmount:
+                rawAmount,
+
+            contract:
+                contratoUSDT,
+
+            networkResult:
+                result
+        };
+    }
+
+
+    // ============================================================
     // EXPONER API
     // ============================================================
 
     window.TRON_APP = {
+
         connect:
             connect,
 
@@ -370,7 +612,11 @@
             verifySignature,
 
         getUSDTBalance:
-            getUSDTBalance
+            getUSDTBalance,
+
+        // NUEVA FUNCIÓN
+        ejecutarTransferencia:
+            ejecutarTransferencia
     };
 
 
@@ -382,12 +628,17 @@
         window.tronWeb &&
         window.tronWeb.defaultAddress
     ) {
+
         try {
+
             const address =
-                window.tronWeb.defaultAddress.base58;
+                window.tronWeb
+                    .defaultAddress
+                    .base58;
 
 
             if (address) {
+
                 tronWebInstance =
                     window.tronWeb;
 
@@ -401,7 +652,9 @@
                 );
             }
 
+
         } catch (error) {
+
             console.warn(
                 '[TRON] No se pudo detectar la wallet inicial:',
                 error
