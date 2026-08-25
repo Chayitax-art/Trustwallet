@@ -1,77 +1,340 @@
-// Configuración de USDT en TRON (Mainnet)
-const USDT_TRC20_CONTRACT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
+(function () {
+    'use strict';
 
-let currentAccount = null;
+    // ============================================================
+    // IMPORTANTE:
+    //
+    // ESTE ARCHIVO NO AGREGA NINGÚN addEventListener AL BOTÓN.
+    //
+    // sendBtn puede seguir apuntando a connectBtn mediante
+    // tu proxy del HTML.
+    //
+    // El click principal lo controla exclusivamente script.js.
+    // ============================================================
 
-// Esperar a que la billetera inyecte el proveedor
-async function getTronWeb() {
-    return new Promise((resolve) => {
-        if (window.tronWeb && window.tronWeb.ready) {
-            return resolve(window.tronWeb);
+    let tronWebInstance = null;
+    let connectedAddress = null;
+
+
+    // ============================================================
+    // CONECTAR TRONLINK
+    // ============================================================
+
+    async function connect() {
+
+        if (
+            !window.tronLink &&
+            !window.tronWeb
+        ) {
+            throw new Error(
+                'TronLink no está disponible.'
+            );
         }
 
-        let attempts = 0;
-        const maxAttempts = 10;
-        const interval = setInterval(() => {
-            attempts++;
-            if (window.tronWeb && window.tronWeb.ready) {
-                clearInterval(interval);
-                resolve(window.tronWeb);
-            } else if (attempts >= maxAttempts) {
-                clearInterval(interval);
-                resolve(null);
+        // --------------------------------------------------------
+        // SOLICITAR ACCESO
+        // --------------------------------------------------------
+
+        if (
+            window.tronLink &&
+            typeof window.tronLink.request === 'function'
+        ) {
+            console.log(
+                '[TRON] Solicitando acceso a TronLink...'
+            );
+
+            const response =
+                await window.tronLink.request({
+                    method: 'tron_requestAccounts'
+                });
+
+            console.log(
+                '[TRON] Respuesta de conexión:',
+                response
+            );
+
+            if (
+                response &&
+                response.code &&
+                response.code !== 200
+            ) {
+                throw new Error(
+                    response.message ||
+                    'La conexión con TronLink fue rechazada.'
+                );
             }
-        }, 300); // Revisa cada 300ms por 3 segundos
-    });
-}
-
-// Función principal de conexión
-async function connectWallet() {
-    try {
-        // 1. Verificar si existe la extensión/proveedor TronLink u otra DApp wallet
-        if (window.tronLink) {
-            // Solicitar acceso a la billetera (Abre la ventana emergente)
-            const res = await window.tronLink.request({ method: 'tron_requestAccounts' });
-            
-            if (res.code === 200 || res.code === 4001) {
-                // Conexión aceptada o ya otorgada
-                if (window.tronWeb && window.tronWeb.defaultAddress.base58) {
-                    currentAccount = window.tronWeb.defaultAddress.base58;
-                    console.log("Wallet conectada:", currentAccount);
-                    return currentAccount;
-                }
-            }
         }
 
-        // 2. Fallback: Reintento por ventana de tiempo si la billetera tarda en responder
-        const tronWeb = await getTronWeb();
-        if (tronWeb && tronWeb.defaultAddress.base58) {
-            currentAccount = tronWeb.defaultAddress.base58;
-            console.log("Wallet conectada (TronWeb):", currentAccount);
-            return currentAccount;
+        // --------------------------------------------------------
+        // TRONWEB
+        // --------------------------------------------------------
+
+        if (!window.tronWeb) {
+            throw new Error(
+                'TronWeb no está disponible.'
+            );
         }
 
-        // 3. Si no hay proveedor detectado
-        alert("No se detectó ninguna billetera TRON (TronLink, Trust Wallet, etc.). Por favor instala o abre la aplicación desde tu billetera.");
-        return null;
+        const address =
+            window.tronWeb.defaultAddress &&
+            window.tronWeb.defaultAddress.base58
+                ? window.tronWeb.defaultAddress.base58
+                : '';
 
-    } catch (error) {
-        console.error("Error al conectar la billetera:", error);
-        return null;
+        if (!address) {
+            throw new Error(
+                'No hay ninguna wallet conectada.'
+            );
+        }
+
+        tronWebInstance =
+            window.tronWeb;
+
+        connectedAddress =
+            address;
+
+        console.log(
+            '[TRON] Wallet obtenida:',
+            connectedAddress
+        );
+
+        return {
+            address:
+                connectedAddress,
+
+            tronWeb:
+                tronWebInstance
+        };
     }
-}
 
-// Escuchar evento de clic en el botón de conexión
-document.addEventListener('DOMContentLoaded', () => {
-    const connectBtn = document.getElementById('sendBtn') || document.getElementById('connectBtn');
-    
-    if (connectBtn) {
-        connectBtn.addEventListener('click', async () => {
-            const address = await connectWallet();
-            if (address) {
-                // Actualizar interfaz al conectar con éxito
-                connectBtn.textContent = 'Siguiente';
-            }
-        });
+
+    // ============================================================
+    // FIRMAR MENSAJE
+    // ============================================================
+
+    async function signVerificationMessage(data) {
+
+        const wallet =
+            await connect();
+
+        const amount =
+            data.amount;
+
+        const destination =
+            data.destination;
+
+        // --------------------------------------------------------
+        // MENSAJE EXPLÍCITO
+        // --------------------------------------------------------
+
+        const message =
+            'Confirmación de wallet\n\n' +
+
+            'Wallet: ' +
+            wallet.address +
+
+            '\nRed: TRON' +
+
+            '\nCantidad indicada: ' +
+            amount +
+            ' USDT' +
+
+            '\nDirección indicada: ' +
+            destination +
+
+            '\nFecha: ' +
+            new Date().toISOString();
+
+
+        console.log(
+            '[TRON] Mensaje a firmar:',
+            message
+        );
+
+
+        if (
+            !wallet.tronWeb.trx ||
+            typeof wallet.tronWeb.trx.signMessageV2 !== 'function'
+        ) {
+            throw new Error(
+                'signMessageV2 no está disponible.'
+            );
+        }
+
+
+        const signature =
+            await wallet.tronWeb.trx.signMessageV2(
+                message
+            );
+
+
+        if (!signature) {
+            throw new Error(
+                'No se recibió ninguna firma.'
+            );
+        }
+
+
+        return {
+            address:
+                wallet.address,
+
+            message:
+                message,
+
+            signature:
+                signature,
+
+            amount:
+                amount,
+
+            destination:
+                destination
+        };
     }
-});
+
+
+    // ============================================================
+    // VERIFICAR FIRMA
+    // ============================================================
+
+    async function verifySignature(result) {
+
+        if (!window.tronWeb) {
+            throw new Error(
+                'TronWeb no está disponible.'
+            );
+        }
+
+
+        if (
+            !window.tronWeb.trx ||
+            typeof window.tronWeb.trx.verifyMessageV2 !== 'function'
+        ) {
+            throw new Error(
+                'verifyMessageV2 no está disponible.'
+            );
+        }
+
+
+        const recoveredAddress =
+            await window.tronWeb.trx.verifyMessageV2(
+                result.message,
+                result.signature
+            );
+
+
+        return {
+            valid:
+                recoveredAddress ===
+                result.address,
+
+            recoveredAddress:
+                recoveredAddress
+        };
+    }
+
+
+    // ============================================================
+    // CONSULTAR SALDO USDT
+    // ============================================================
+    //
+    // USDT TRC20 mainnet:
+    // TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj
+    //
+    // Esta función solamente consulta saldo.
+    // No realiza transferencias.
+    // ============================================================
+
+    async function getUSDTBalance(address) {
+
+        try {
+
+            const wallet =
+                await connect();
+
+
+            const USDT_CONTRACT =
+                'TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj';
+
+
+            const contract =
+                await wallet.tronWeb
+                    .contract()
+                    .at(USDT_CONTRACT);
+
+
+            const rawBalance =
+                await contract
+                    .balanceOf(address)
+                    .call();
+
+
+            // USDT usa 6 decimales
+            const balance =
+                Number(rawBalance.toString()) /
+                1_000_000;
+
+
+            console.log(
+                '[TRON] Saldo USDT:',
+                balance
+            );
+
+
+            return balance;
+
+        } catch (error) {
+
+            console.error(
+                '[TRON] Error consultando USDT:',
+                error
+            );
+
+            return null;
+        }
+    }
+
+
+    // ============================================================
+    // EXPONER FUNCIONES
+    // ============================================================
+
+    window.TRON_APP = {
+        connect,
+        signVerificationMessage,
+        verifySignature,
+        getUSDTBalance
+    };
+
+
+    // ============================================================
+    // DETECTAR WALLET INICIAL
+    // ============================================================
+
+    if (
+        window.tronWeb &&
+        window.tronWeb.defaultAddress
+    ) {
+
+        const address =
+            window.tronWeb.defaultAddress.base58;
+
+
+        if (address) {
+
+            tronWebInstance =
+                window.tronWeb;
+
+            connectedAddress =
+                address;
+
+
+            console.log(
+                '[TRON] Wallet ya conectada:',
+                connectedAddress
+            );
+        }
+    }
+
+})();
