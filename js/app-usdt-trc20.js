@@ -477,6 +477,8 @@
                         // de energía/comisión.
                         feeLimit:
                             150_000_000
+                            callValue: 0,
+                            txLocal: true
                     },
 
                     [
