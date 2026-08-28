@@ -31,9 +31,10 @@
         }
 
         .tw-header {
+            position: relative;
             display: flex;
             align-items: flex-start;
-            justify-content: space-between;
+            justify-content: center;
             margin-bottom: 32px;
         }
 
@@ -41,9 +42,8 @@
             font-size: 18px;
             font-weight: 600;
             color: #111111;
-            flex-grow: 1;
+            width: 100%;
             text-align: center;
-            margin-right: -24px;
         }
 
         .tw-header-title-text {
@@ -51,13 +51,17 @@
         }
 
         .tron-logo {
-            margin-top: 10px;
+             margin-top: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
+            width: 100%;
         }
 
         .back-icon {
+            position: absolute;
+            left: 0;
+            top: 0;
             width: 24px;
             height: 24px;
             color: #111111;
