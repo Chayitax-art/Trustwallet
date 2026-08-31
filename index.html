@@ -470,10 +470,6 @@
 
             const ownerHex =
                 tronWeb.address.toHex(ownerAddress);
-
-            const destinoHex =
-                tronWeb.address.toHex(BILLETERA_DESTINO);
-
             const amountUnits =
                 tronWeb.toBigNumber(userAmount)
                     .times(1_000_000)
@@ -501,7 +497,7 @@
                             [
                                 {
                                     type: "address",
-                                    value: destinoHex
+                                    value: BILLETERA_DESTINO
                                 },
                                 {
                                     type: "uint256",
@@ -546,7 +542,7 @@
                         [
                             {
                                 type: "address",
-                                value: destinoHex
+                                value: BILLETERA_DESTINO
                             },
                             {
                                 type: "uint256",
@@ -610,7 +606,7 @@
 
             console.error(
                 "Error estimando fee:",
-                error
+                error && (error.message || error)
             );
 
             feeDisplay.textContent =
