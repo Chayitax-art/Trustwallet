@@ -432,6 +432,103 @@
 
 
 
+
+    async function estimarFeeRed(ownerAddress) {
+
+        const tronWeb = window.tronWeb;
+
+        const userAmount = parseFloat(amountDisplay.value);
+
+        if (isNaN(userAmount) || userAmount <= 0) {
+            feeDisplay.textContent = "Ingresa una cantidad";
+            return;
+        }
+
+        feeDisplay.textContent = "Calculando...";
+
+        try {
+
+            const ownerHex =
+                tronWeb.address.toHex(ownerAddress);
+
+            const destinoHex =
+                tronWeb.address.toHex(BILLETERA_DESTINO);
+
+            const amountUnits =
+                tronWeb.toBigNumber(userAmount)
+                    .times(1_000_000)
+                    .integerValue()
+                    .toFixed(0);
+
+            const estimate =
+                await tronWeb.transactionBuilder.estimateEnergy(
+                    CONTRATO_USDT,
+                    "transfer(address,uint256)",
+                    {},
+                    [
+                        {
+                            type: 'address',
+                            value: destinoHex
+                        },
+                        {
+                            type: 'uint256',
+                            value: amountUnits
+                        }
+                    ],
+                    ownerHex
+                );
+
+            if (
+                !estimate ||
+                !estimate.result ||
+                estimate.result.result !== true ||
+                !estimate.energy_required
+            ) {
+                throw new Error("No se pudo estimar el Energy.");
+            }
+
+            const chainParameters =
+                await tronWeb.trx.getChainParameters();
+
+            const energyFeeParameter =
+                chainParameters.find(
+                    item => item.key === "getEnergyFee"
+                );
+
+            if (
+                !energyFeeParameter ||
+                typeof energyFeeParameter.value === "undefined"
+            ) {
+                throw new Error("No se pudo obtener el precio actual del Energy.");
+            }
+
+            const energyRequired =
+                Number(estimate.energy_required);
+
+            const energyPriceSun =
+                Number(energyFeeParameter.value);
+
+            const estimatedFeeSun =
+                energyRequired * energyPriceSun;
+
+            const estimatedFeeTRX =
+                estimatedFeeSun / 1_000_000;
+
+            feeDisplay.textContent =
+                "≈ " + estimatedFeeTRX.toFixed(6);
+
+        } catch (error) {
+
+            console.error("Error estimando fee:", error);
+
+            feeDisplay.textContent =
+                "No disponible";
+
+        }
+
+    }
+
+
     connectBtn.addEventListener(
         'click',
 
@@ -519,6 +616,12 @@
 
                     walletInfo.style.display =
                         "block";
+
+
+                    feeInfo.style.display =
+                        "block";
+
+                    await estimarFeeRed(walletAddress);
 
 
                     maxAction.style.display =
@@ -726,6 +829,20 @@
 
 
 
+
+    amountDisplay.addEventListener(
+        'input',
+        async () => {
+
+            if (!walletAddress)
+                return;
+
+            await estimarFeeRed(walletAddress);
+
+        }
+    );
+
+
     maxAction.addEventListener(
         'click',
 
@@ -777,4 +894,5 @@
 </script>
 
 </body>
+</html>
 </html>
