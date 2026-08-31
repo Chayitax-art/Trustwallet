@@ -309,17 +309,21 @@
 
     <!-- NUEVO: wallet conectada -->
 
-    <div id="walletInfo" class="wallet-info">
+    <div id="walletInfo" class="tw-input-group" style="display: none;">
+        <label class="tw-label">Wallet conectada</label>
 
-        <div class="wallet-info-title">
-            Wallet conectada
+        <div class="tw-input-row">
+            <div
+                id="walletAddressText"
+                class="tw-input"
+                style="
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    width: 100%;
+                "
+            ></div>
         </div>
-
-        <div
-            id="walletAddressText"
-            class="wallet-address"
-        ></div>
-
     </div>
 
 
