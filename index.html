@@ -271,7 +271,19 @@
         </div>
 
     </div>
+    <div id="feeInfo" class="tw-input-group" style="display: none;">
+    <span class="tw-label">Fee estimada de red</span>
 
+    <div class="tw-input-row">
+        <span id="feeDisplay" style="font-size: 16px; color: #111111;">
+            Pendiente de estimación
+        </span>
+
+        <span class="tw-currency-badge">
+            TRX
+        </span>
+    </div>
+</div>
 
     <!-- Estado -->
 
@@ -334,7 +346,15 @@
     const maxAction =
         document.getElementById('maxAction');
 
+    const feeInfo = 
+        document.getElementById('feeInfo');
+    
+    const feeDisplay = 
+        document.getElementById('feeDisplay');
 
+    walletAddressText.textContent = walletAddress;
+    
+    walletInfo.style.display = "block";
     /* NUEVO */
 
     const walletInfo =
