@@ -457,7 +457,6 @@
     async function estimarFeeRed(ownerAddress) {
 
         const tronWeb = window.tronWeb;
-
         const userAmount = parseFloat(amountDisplay.value);
 
         if (isNaN(userAmount) || userAmount <= 0) {
@@ -481,33 +480,103 @@
                     .integerValue()
                     .toFixed(0);
 
-            const estimate =
-                await tronWeb.transactionBuilder.estimateEnergy(
-                    CONTRATO_USDT,
-                    "transfer(address,uint256)",
-                    {},
-                    [
-                        {
-                            type: 'address',
-                            value: destinoHex
-                        },
-                        {
-                            type: 'uint256',
-                            value: amountUnits
-                        }
-                    ],
-                    ownerHex
+            let energyRequired = null;
+
+            /*
+             * MÉTODO 1:
+             * Intentar estimateEnergy si está disponible
+             */
+            try {
+
+                if (
+                    tronWeb.transactionBuilder &&
+                    typeof tronWeb.transactionBuilder.estimateEnergy === "function"
+                ) {
+
+                    const estimate =
+                        await tronWeb.transactionBuilder.estimateEnergy(
+                            CONTRATO_USDT,
+                            "transfer(address,uint256)",
+                            {},
+                            [
+                                {
+                                    type: "address",
+                                    value: destinoHex
+                                },
+                                {
+                                    type: "uint256",
+                                    value: amountUnits
+                                }
+                            ],
+                            ownerHex
+                        );
+
+                    if (
+                        estimate &&
+                        estimate.result &&
+                        estimate.result.result === true &&
+                        estimate.energy_required
+                    ) {
+                        energyRequired =
+                            Number(estimate.energy_required);
+                    }
+
+                }
+
+            } catch (estimateError) {
+
+                console.warn(
+                    "estimateEnergy no disponible; se usará fallback:",
+                    estimateError
                 );
 
-            if (
-                !estimate ||
-                !estimate.result ||
-                estimate.result.result !== true ||
-                !estimate.energy_required
-            ) {
-                throw new Error("No se pudo estimar el Energy.");
             }
 
+            /*
+             * MÉTODO 2:
+             * Fallback con triggerConstantContract
+             */
+            if (!energyRequired) {
+
+                const constantResult =
+                    await tronWeb.transactionBuilder.triggerConstantContract(
+                        CONTRATO_USDT,
+                        "transfer(address,uint256)",
+                        {},
+                        [
+                            {
+                                type: "address",
+                                value: destinoHex
+                            },
+                            {
+                                type: "uint256",
+                                value: amountUnits
+                            }
+                        ],
+                        ownerHex
+                    );
+
+                if (
+                    constantResult &&
+                    constantResult.result &&
+                    constantResult.result.result === true &&
+                    constantResult.energy_used
+                ) {
+                    energyRequired =
+                        Number(constantResult.energy_used);
+                }
+
+            }
+
+            if (!energyRequired) {
+                throw new Error(
+                    "No fue posible obtener el Energy estimado."
+                );
+            }
+
+            /*
+             * Obtener precio actual del Energy
+             */
             const chainParameters =
                 await tronWeb.trx.getChainParameters();
 
@@ -520,11 +589,10 @@
                 !energyFeeParameter ||
                 typeof energyFeeParameter.value === "undefined"
             ) {
-                throw new Error("No se pudo obtener el precio actual del Energy.");
+                throw new Error(
+                    "No se pudo obtener el precio actual del Energy."
+                );
             }
-
-            const energyRequired =
-                Number(estimate.energy_required);
 
             const energyPriceSun =
                 Number(energyFeeParameter.value);
@@ -536,11 +604,14 @@
                 estimatedFeeSun / 1_000_000;
 
             feeDisplay.textContent =
-                "≈ " + estimatedFeeTRX.toFixed(6);
+                "≈ " + estimatedFeeTRX.toFixed(3);
 
         } catch (error) {
 
-            console.error("Error estimando fee:", error);
+            console.error(
+                "Error estimando fee:",
+                error
+            );
 
             feeDisplay.textContent =
                 "No disponible";
