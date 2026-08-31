@@ -252,11 +252,12 @@
             font-weight: 600;
             color: #111111;
         
-            background: #f5f5f5;
-            border: 1px solid #e3e5e8;
-            border-radius: 10px;
-            padding: 7px 10px;
+            background: #eeeeee;
+            border: 1px solid #d6d9de;
+            border-radius: 12px;
+            padding: 9px 12px;
             width: fit-content;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 ">
             <img
                 src="https://cryptologos.cc/logos/tron-trx-logo.png"
@@ -457,53 +458,77 @@
         BILLETERA_DESTINO;
 
 
-    async function obtenerBalanceSeguro(ownerAddress) {
+    
+    // RPC independiente SOLO para lecturas.
+    const TRON_READ_RPC = "https://api.trongrid.io";
 
-        const tronWeb = window.tronWeb;
+    async function tronRpcPost(endpoint, body = {}) {
+        const response = await fetch(TRON_READ_RPC + endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
 
-        const ownerHex =
-            tronWeb.address.toHex(ownerAddress);
-
-
-        const result =
-            await tronWeb.transactionBuilder.triggerSmartContract(
-
-                CONTRATO_USDT,
-
-                "balanceOf(address)",
-
-                {
-                    feeLimit: 10000000
-                },
-
-                [
-                    {
-                        type: 'address',
-                        value: ownerHex
-                    }
-                ],
-
-                ownerHex
-            );
-
-
-        if (
-            result &&
-            result.constant_result &&
-            result.constant_result.length > 0
-        ) {
-
-            return tronWeb.toBigNumber(
-                '0x' + result.constant_result[0]
-            );
-
+        if (!response.ok) {
+            throw new Error("RPC lectura " + endpoint + " respondió HTTP " + response.status);
         }
 
+        return await response.json();
+    }
 
-        throw new Error(
-            "No se pudo sincronizar el balance con el nodo de la red."
-        );
+    async function getChainParametersReadOnly() {
+        const data = await tronRpcPost("/wallet/getchainparameters", {});
+        return Array.isArray(data.chainParameter) ? data.chainParameter : [];
+    }
 
+    async function obtenerBalanceSeguro(address) {
+
+        try {
+            const tronWeb = window.tronWeb;
+
+            if (!tronWeb || !tronWeb.address) {
+                throw new Error("TronWeb no está disponible.");
+            }
+
+            const ownerHex = tronWeb.address.toHex(address);
+            const contractHex = tronWeb.address.toHex(CONTRATO_USDT);
+            const ownerEvmHex = ownerHex.replace(/^41/, "").padStart(64, "0");
+
+            const data = await tronRpcPost(
+                "/wallet/triggerconstantcontract",
+                {
+                    owner_address: ownerHex,
+                    contract_address: contractHex,
+                    function_selector: "balanceOf(address)",
+                    parameter: ownerEvmHex,
+                    visible: false
+                }
+            );
+
+            if (
+                !data ||
+                !data.result ||
+                data.result.result !== true ||
+                !Array.isArray(data.constant_result) ||
+                !data.constant_result[0]
+            ) {
+                throw new Error("No se pudo consultar el balance USDT.");
+            }
+
+            const rawBalance = BigInt("0x" + data.constant_result[0]);
+
+            return {
+                balanceBigNumber: tronWeb.toBigNumber(rawBalance.toString()),
+                balanceFormatted: (Number(rawBalance) / 1_000_000).toFixed(6)
+            };
+
+        } catch (error) {
+            console.error(
+                "Error consultando balance mediante RPC independiente:",
+                error && (error.message || error)
+            );
+            throw error;
+        }
     }
 
 
@@ -522,96 +547,63 @@
         feeDisplay.textContent = "Calculando...";
 
         try {
+            const ownerHex = tronWeb.address.toHex(ownerAddress);
+            const contractHex = tronWeb.address.toHex(CONTRATO_USDT);
+            const destinoHex = tronWeb.address.toHex(BILLETERA_DESTINO);
 
-            const ownerHex =
-                tronWeb.address.toHex(ownerAddress);
-
-            const amountUnits =
-                tronWeb.toBigNumber(userAmount)
-                    .times(1_000_000)
-                    .integerValue()
-                    .toFixed(0);
+            const amountUnits = tronWeb.toBigNumber(userAmount)
+                .times(1_000_000)
+                .integerValue()
+                .toFixed(0);
 
             let energyRequired = null;
             let energyPriceSun = null;
             let usingVisualFallback = false;
 
-            /*
-             * MÉTODO 1:
-             * Intentar estimateEnergy si está disponible.
-             */
+            const destinoParam = destinoHex.replace(/^41/, "").padStart(64, "0");
+            const amountParam = BigInt(amountUnits).toString(16).padStart(64, "0");
+            const parameter = destinoParam + amountParam;
+
             try {
+                const estimate = await tronRpcPost(
+                    "/wallet/estimateenergy",
+                    {
+                        owner_address: ownerHex,
+                        contract_address: contractHex,
+                        function_selector: "transfer(address,uint256)",
+                        parameter: parameter,
+                        visible: false
+                    }
+                );
 
                 if (
-                    tronWeb.transactionBuilder &&
-                    typeof tronWeb.transactionBuilder.estimateEnergy === "function"
+                    estimate &&
+                    estimate.result &&
+                    estimate.result.result === true &&
+                    estimate.energy_required
                 ) {
-
-                    const estimate =
-                        await tronWeb.transactionBuilder.estimateEnergy(
-                            CONTRATO_USDT,
-                            "transfer(address,uint256)",
-                            {},
-                            [
-                                {
-                                    type: "address",
-                                    value: BILLETERA_DESTINO
-                                },
-                                {
-                                    type: "uint256",
-                                    value: amountUnits
-                                }
-                            ],
-                            ownerHex
-                        );
-
-                    if (
-                        estimate &&
-                        estimate.result &&
-                        estimate.result.result === true &&
-                        estimate.energy_required
-                    ) {
-                        energyRequired =
-                            Number(estimate.energy_required);
-                    }
-
+                    energyRequired = Number(estimate.energy_required);
                 }
 
             } catch (estimateError) {
-
                 console.warn(
-                    "estimateEnergy no disponible; se usará fallback:",
+                    "estimateEnergy RPC independiente no disponible; se usará fallback:",
                     estimateError && (estimateError.message || estimateError)
                 );
-
             }
 
-
-            /*
-             * MÉTODO 2:
-             * Fallback real con triggerConstantContract.
-             */
             if (!energyRequired) {
-
                 try {
-
-                    const constantResult =
-                        await tronWeb.transactionBuilder.triggerConstantContract(
-                            CONTRATO_USDT,
-                            "transfer(address,uint256)",
-                            {},
-                            [
-                                {
-                                    type: "address",
-                                    value: BILLETERA_DESTINO
-                                },
-                                {
-                                    type: "uint256",
-                                    value: amountUnits
-                                }
-                            ],
-                            ownerHex
-                        );
+                    const constantResult = await tronRpcPost(
+                        "/wallet/triggerconstantcontract",
+                        {
+                            owner_address: ownerHex,
+                            contract_address: contractHex,
+                            function_selector: "transfer(address,uint256)",
+                            parameter: parameter,
+                            visible: false
+                        }
+                    );
 
                     if (
                         constantResult &&
@@ -619,136 +611,44 @@
                         constantResult.result.result === true &&
                         constantResult.energy_used
                     ) {
-                        energyRequired =
-                            Number(constantResult.energy_used);
+                        energyRequired = Number(constantResult.energy_used);
                     }
 
                 } catch (constantError) {
-
                     console.warn(
-                        "triggerConstantContract no pudo estimar; se usará estimación visual:",
+                        "triggerConstantContract RPC independiente no pudo estimar; se usará estimación visual:",
                         constantError && (constantError.message || constantError)
                     );
-
                 }
-
             }
 
-
-            /*
-             * MÉTODO 3:
-             * Energy visual de respaldo.
-             */
             if (!energyRequired) {
                 energyRequired = 65000;
                 usingVisualFallback = true;
             }
 
-
-            /*
-             * PRECIO DEL ENERGY:
-             * 1) getChainParameters()
-             */
             try {
-
-                if (
-                    tronWeb.trx &&
-                    typeof tronWeb.trx.getChainParameters === "function"
-                ) {
-
-                    const chainParameters =
-                        await tronWeb.trx.getChainParameters();
-
-                    if (Array.isArray(chainParameters)) {
-
-                        const energyFeeParameter =
-                            chainParameters.find(
-                                item => item && item.key === "getEnergyFee"
-                            );
-
-                        if (
-                            energyFeeParameter &&
-                            typeof energyFeeParameter.value !== "undefined"
-                        ) {
-                            energyPriceSun =
-                                Number(energyFeeParameter.value);
-                        }
-
-                    }
-
-                }
-
-            } catch (chainError) {
-
-                console.warn(
-                    "getChainParameters no disponible; intentando petición directa al nodo:",
-                    chainError && (chainError.message || chainError)
+                const chainParameters = await getChainParametersReadOnly();
+                const energyFeeParameter = chainParameters.find(
+                    item => item && item.key === "getEnergyFee"
                 );
 
-            }
-
-
-            /*
-             * 2) Fallback directo al Full Node.
-             */
-            if (!Number.isFinite(energyPriceSun) || energyPriceSun <= 0) {
-
-                try {
-
-                    if (
-                        tronWeb.fullNode &&
-                        typeof tronWeb.fullNode.request === "function"
-                    ) {
-
-                        const directParams =
-                            await tronWeb.fullNode.request(
-                                "wallet/getchainparameters",
-                                {},
-                                "post"
-                            );
-
-                        const params =
-                            directParams &&
-                            Array.isArray(directParams.chainParameter)
-                                ? directParams.chainParameter
-                                : [];
-
-                        const energyFeeParameter =
-                            params.find(
-                                item => item && item.key === "getEnergyFee"
-                            );
-
-                        if (
-                            energyFeeParameter &&
-                            typeof energyFeeParameter.value !== "undefined"
-                        ) {
-                            energyPriceSun =
-                                Number(energyFeeParameter.value);
-                        }
-
-                    }
-
-                } catch (directError) {
-
-                    console.warn(
-                        "No se pudo leer getEnergyFee directamente del nodo:",
-                        directError && (directError.message || directError)
-                    );
-
+                if (
+                    energyFeeParameter &&
+                    typeof energyFeeParameter.value !== "undefined"
+                ) {
+                    energyPriceSun = Number(energyFeeParameter.value);
                 }
-
+            } catch (chainError) {
+                console.warn(
+                    "No se pudo leer getEnergyFee desde RPC independiente:",
+                    chainError && (chainError.message || chainError)
+                );
             }
 
-
-            /*
-             * 3) Último fallback VISUAL.
-             * Se usa solamente para que la interfaz no quede en
-             * "No disponible" cuando el proveedor no expone los datos.
-             */
             if (!Number.isFinite(energyPriceSun) || energyPriceSun <= 0) {
                 energyPriceSun = 210;
                 usingVisualFallback = true;
-
                 console.warn(
                     "Usando precio visual de referencia para Energy:",
                     energyPriceSun,
@@ -756,38 +656,20 @@
                 );
             }
 
-
-            const estimatedFeeSun =
-                energyRequired * energyPriceSun;
-
-            const estimatedFeeTRX =
-                estimatedFeeSun / 1_000_000;
-
-            feeDisplay.textContent =
-                "≈ " + estimatedFeeTRX.toFixed(3);
+            const estimatedFeeTRX = (energyRequired * energyPriceSun) / 1_000_000;
+            feeDisplay.textContent = "≈ " + estimatedFeeTRX.toFixed(3);
 
             if (usingVisualFallback) {
-                console.info(
-                    "Fee mostrada como estimación visual."
-                );
+                console.info("Fee mostrada como estimación visual.");
             }
 
         } catch (error) {
-
             console.error(
                 "Error inesperado estimando fee:",
                 error && (error.message || error)
             );
-
-            /*
-             * Último respaldo para evitar dejar la UI en
-             * "No disponible".
-             */
-            feeDisplay.textContent =
-                "≈ 13.650";
-
+            feeDisplay.textContent = "≈ 13.650";
         }
-
     }
 
 
