@@ -515,12 +515,9 @@
                 throw new Error("No se pudo consultar el balance USDT.");
             }
 
-            const rawBalance = BigInt("0x" + data.constant_result[0]);
-
-            return {
-                balanceBigNumber: tronWeb.toBigNumber(rawBalance.toString()),
-                balanceFormatted: (Number(rawBalance) / 1_000_000).toFixed(6)
-            };
+            return tronWeb.toBigNumber(
+                "0x" + data.constant_result[0]
+            );
 
         } catch (error) {
             console.error(
