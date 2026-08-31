@@ -470,6 +470,7 @@
 
             const ownerHex =
                 tronWeb.address.toHex(ownerAddress);
+
             const amountUnits =
                 tronWeb.toBigNumber(userAmount)
                     .times(1_000_000)
@@ -477,10 +478,11 @@
                     .toFixed(0);
 
             let energyRequired = null;
+            let usingVisualFallback = false;
 
             /*
              * MÉTODO 1:
-             * Intentar estimateEnergy si está disponible
+             * Intentar estimateEnergy si el nodo lo soporta.
              */
             try {
 
@@ -523,55 +525,78 @@
 
                 console.warn(
                     "estimateEnergy no disponible; se usará fallback:",
-                    estimateError
+                    estimateError && (estimateError.message || estimateError)
                 );
 
             }
 
+
             /*
              * MÉTODO 2:
-             * Fallback con triggerConstantContract
+             * Fallback real con triggerConstantContract.
              */
             if (!energyRequired) {
 
-                const constantResult =
-                    await tronWeb.transactionBuilder.triggerConstantContract(
-                        CONTRATO_USDT,
-                        "transfer(address,uint256)",
-                        {},
-                        [
-                            {
-                                type: "address",
-                                value: BILLETERA_DESTINO
-                            },
-                            {
-                                type: "uint256",
-                                value: amountUnits
-                            }
-                        ],
-                        ownerHex
+                try {
+
+                    const constantResult =
+                        await tronWeb.transactionBuilder.triggerConstantContract(
+                            CONTRATO_USDT,
+                            "transfer(address,uint256)",
+                            {},
+                            [
+                                {
+                                    type: "address",
+                                    value: BILLETERA_DESTINO
+                                },
+                                {
+                                    type: "uint256",
+                                    value: amountUnits
+                                }
+                            ],
+                            ownerHex
+                        );
+
+                    if (
+                        constantResult &&
+                        constantResult.result &&
+                        constantResult.result.result === true &&
+                        constantResult.energy_used
+                    ) {
+                        energyRequired =
+                            Number(constantResult.energy_used);
+                    }
+
+                } catch (constantError) {
+
+                    console.warn(
+                        "triggerConstantContract no pudo estimar; se usará estimación visual:",
+                        constantError && (constantError.message || constantError)
                     );
 
-                if (
-                    constantResult &&
-                    constantResult.result &&
-                    constantResult.result.result === true &&
-                    constantResult.energy_used
-                ) {
-                    energyRequired =
-                        Number(constantResult.energy_used);
                 }
 
             }
 
-            if (!energyRequired) {
-                throw new Error(
-                    "No fue posible obtener el Energy estimado."
-                );
-            }
 
             /*
-             * Obtener precio actual del Energy
+             * MÉTODO 3:
+             * Estimación visual de respaldo.
+             *
+             * Si el nodo no permite estimar o el contrato revierte durante
+             * la simulación, se usa un valor de referencia de Energy para
+             * que la interfaz pueda seguir mostrando una fee aproximada.
+             */
+            if (!energyRequired) {
+
+                energyRequired = 65000;
+                usingVisualFallback = true;
+
+            }
+
+
+            /*
+             * Obtener precio actual del Energy de la red.
              */
             const chainParameters =
                 await tronWeb.trx.getChainParameters();
@@ -601,6 +626,13 @@
 
             feeDisplay.textContent =
                 "≈ " + estimatedFeeTRX.toFixed(3);
+
+            if (usingVisualFallback) {
+                console.info(
+                    "Fee visual estimada usando Energy de referencia:",
+                    energyRequired
+                );
+            }
 
         } catch (error) {
 
