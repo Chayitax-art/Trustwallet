@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -240,8 +241,10 @@
         </div>
     </div>
 
-        <div style="
-            display: flex;
+        <div id="tronNetworkInfo" style="
+            display: none;
+            
+            
             align-items: center;
             justify-content: flex-start;
             gap: 7px;
@@ -426,6 +429,7 @@
 
     const walletInfo =
         document.getElementById('walletInfo');
+    const tronNetworkInfo = document.getElementById("tronNetworkInfo");
 
     const walletAddressText =
         document.getElementById('walletAddressText');
@@ -869,6 +873,7 @@
 
                     walletInfo.style.display =
                         "block";
+                tronNetworkInfo.style.display = "flex";
 
 
                     feeInfo.style.display =
